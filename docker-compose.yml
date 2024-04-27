@@ -1,0 +1,30 @@
+services:
+  db:
+    platform: linux/x86_64
+    image: mysql:5.7
+    restart: on-failure
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "0.0.0.0"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  app:
+    build: .
+    restart: always
+    volumes:
+      - .:/usr/src/app
+    depends_on: 
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+
+volumes:
+  mysql_data:
