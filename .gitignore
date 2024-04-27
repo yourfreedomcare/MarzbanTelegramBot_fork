@@ -3,3 +3,7 @@ __pycache__/
 
 # Ignore .env files
 *.env
+
+# Igore DS Store
+
+.DS_Store
