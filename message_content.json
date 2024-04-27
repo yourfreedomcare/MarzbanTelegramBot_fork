@@ -1,0 +1,13 @@
+{
+    "unexpected_error": "Something went wrong, please try again later!",
+    "welcome": "Hello, Welcome to Marzban, Click the button below to create your configurations!",
+    "welcome_back": "Welcome Back!, Use the buttons below to access available configurations and usage manuals", 
+    "refresh_started": "Refresh in progress...",
+    "refresh_done": "Refresh completed successfully!",
+    "configs_panel": "Find below the available Configs!",
+    "default_fallback": "Unknown Message!",
+    "created_configs": "Configurations created succesfully, Use the buttons below to access available ones",
+    "manuals": "Please read this <a href=\"{link}\">manual</a> carefully",
+    "link_available": "Link is ready!{breakpoint}`{link}`",
+    "link_unavailable": "No Link available for {location}"
+}
