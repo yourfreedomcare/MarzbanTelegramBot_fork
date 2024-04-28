@@ -9,5 +9,7 @@
     "created_configs": "Configurations created succesfully, Use the buttons below to access available ones",
     "manuals": "Please read this <a href=\"{link}\">manual</a> carefully",
     "link_available": "Link is ready!{breakpoint}`{link}`",
-    "link_unavailable": "No Link available for {location}"
+    "link_unavailable": "No Link available for {location}",
+    "configs_exist": "Configs already exist, use the buttons below to access your configs!",
+    "no_configs": "No Configs Available, Please click the button below to create configs"
 }

@@ -31,7 +31,7 @@ class TelegramBot():
             if user == None or len(configurations) == 0 : 
                 if user == None:
                     UserRepository.create_new_user(telegram_user_id)
-                show_create_configurations_message(TelegramBot.bot, message)
+                show_create_configurations_message(TelegramBot.bot, message, messages_content['welcome'])
             else:
                 create_reply_keyboard_panel(TelegramBot.bot, message.chat.id, messages_content['welcome_back'])
         except Exception: 
@@ -60,17 +60,20 @@ class TelegramBot():
     def configurations_callback_query(call):
         try:
             telegram_user_id = retrieve_username(call.from_user)
-            user_data, status_code, access_token = MarzbanService.create_marzaban_user(telegram_user_id)
+            configs = UserRepository.get_user_configurations(telegram_user_id)
+            if len(configs) > 0: 
+                TelegramBot.bot.send_message(call.message.chat.id, messages_content['configs_exist'])
+            else:
+                user_data, status_code, access_token = MarzbanService.create_marzaban_user(telegram_user_id)
 
-            if status_code == 409: 
-                user_data, status_code = MarzbanService.get_marzaban_user(telegram_user_id, access_token)
+                if status_code == 409: 
+                    user_data, status_code = MarzbanService.get_marzaban_user(telegram_user_id, access_token)
 
-            if status_code > 299: 
-                raise Exception("Failed API Call")
+                if status_code > 299: 
+                    raise Exception("Failed API Call")
 
-
-            UserRepository.insert_configurations(telegram_user_id, user_data['links'])
-            create_reply_keyboard_panel(TelegramBot.bot, call.message.chat.id, messages_content['created_configs'])
+                UserRepository.insert_configurations(telegram_user_id, user_data['links'])
+                create_reply_keyboard_panel(TelegramBot.bot, call.message.chat.id, messages_content['created_configs'])
         except Exception: 
             logger.error(f"Exception -> configurations_callback_query: ", exc_info=True)
             logger.error(f"API Response -> {user_data} ")
@@ -83,7 +86,11 @@ class TelegramBot():
         try:
             telegram_user_id = retrieve_username(message.from_user)
             configurations = UserRepository.get_user_configurations(telegram_user_id)
-            prepare_configs_panel(TelegramBot.bot, message.chat.id, configurations)
+            if len(configurations) > 0:
+                prepare_configs_panel(TelegramBot.bot, message.chat.id, configurations)
+            else: 
+                show_create_configurations_message(TelegramBot.bot, message, messages_content['no_configs'])
+
         except Exception: 
             logger.error(f"Exception -> get_configurations: ", exc_info=True)
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
@@ -104,7 +111,7 @@ class TelegramBot():
         try:
             telegram_user_id = retrieve_username(call.from_user)
             configurations = UserRepository.get_user_configurations(telegram_user_id)
-            d = prepare_links_dictionary(TelegramBot.bot, configurations)
+            d = prepare_links_dictionary(configurations)
             if d[call.data]:
                 TelegramBot.bot.send_message(call.message.chat.id, messages_content['link_available'].format(breakpoint="\n\n", link=d[call.data]), parse_mode='Markdown')
             else: 
