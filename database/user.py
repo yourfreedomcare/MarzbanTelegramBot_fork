@@ -22,7 +22,7 @@ class User(Base):
     telegram_user_id = Column(String(255), primary_key=True)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    configurations = relationship('Configurations', back_populates='user')
+    configurations = relationship('Configurations', back_populates='user', cascade='all, delete-orphan')
 
     def __init__(self, telegram_user_id):
         self.telegram_user_id = telegram_user_id
@@ -50,6 +50,7 @@ class UserRepository():
                 try: 
                     logger.info('get_user_configurations -> grabbing users configs')
                     configurations = session.query(Configurations).filter_by(telegram_user_id=telegram_user_id).all()
+                    session.close()
                 except Exception:
                     logger.error(f"Exception -> get_user_configurations: ", exc_info=True)
                     session.rollback()
@@ -72,35 +73,48 @@ class UserRepository():
         
     @staticmethod
     def insert_configurations(telegram_user_id, links): 
-        with Session() as session: 
-            with session.begin(): 
-                try: 
-                    logger.info('insert_configurations -> inserting user configs')
-                    configs = [Configurations(telegram_user_id, link) for link in links]
-                    session.bulk_save_objects(configs)
-                except Exception:
-                    logger.error(f"Exception -> insert_configurations: ", exc_info=True)
-                    session.rollback()
-                finally:
-                    session.commit()
-    
+        try: 
+            with Session() as session: 
+                user = session.query(User).filter_by(telegram_user_id=telegram_user_id).first()
+                if user is None:
+                    user = User(telegram_user_id=telegram_user_id)
+                    session.add(user)
+                    session.flush()
+
+                configs = [Configurations(telegram_user_id=telegram_user_id, vless_link=link) for link in links]
+                session.bulk_save_objects(configs)
+                session.commit()
+        except Exception as e:
+            logger.error(f"Exception -> insert_configurations: {e}", exc_info=True)
+
 
     @staticmethod
     def refresh_configs(access_token): 
         session = Session()
         users = session.query(User).all()
         for user in users: 
-            user_marzban_data, _ = MarzbanApiFacade.get_user(user.telegram_user_id, access_token)
-            new_configs = [Configurations(user.telegram_user_id, link) for link in user_marzban_data['links']]
-            try:
-                existing_configs = session.query(Configurations).filter_by(telegram_user_id=user.telegram_user_id).all()
-                for config in existing_configs:
-                    session.delete(config)
-                session.bulk_save_objects(new_configs)
-                session.commit()
-            except Exception:
-                logger.error(f"Exception -> refresh_configs: ", exc_info=True)
-                session.rollback()
-            finally:
-                session.close()
+            user_marzban_data, status_code = MarzbanApiFacade.get_user(user.telegram_user_id, access_token)
+            if status_code == 200:
+                print(user_marzban_data)
+                new_configs = [Configurations(user.telegram_user_id, link) for link in user_marzban_data['links']]
+                try:
+                    existing_configs = session.query(Configurations).filter_by(telegram_user_id=user.telegram_user_id).all()
+                    for config in existing_configs:
+                        session.delete(config)
+                    session.bulk_save_objects(new_configs)
+                    session.commit()
+                except Exception:
+                    logger.error(f"Exception -> refresh_configs: ", exc_info=True)
+                    session.rollback()
+            else: 
+                if status_code == 404: 
+                    try: 
+                        if len(user.configurations) > 0: 
+                            session.delete(user)
+                            session.commit()
+                    except: 
+                        logger.error(f"Exception -> refresh_configs: ", exc_info=True)
+                        session.rollback()
+                else: 
+                    continue
 

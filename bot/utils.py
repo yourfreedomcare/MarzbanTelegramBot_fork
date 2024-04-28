@@ -13,17 +13,17 @@ with open('message_content.json', 'r') as file:
 with open('button_content.json', 'r') as file:
     button_content = json.load(file)
 
-def show_create_configurations_message(bot, message):
+def show_create_configurations_message(bot, message, content):
     keyboard = types.InlineKeyboardMarkup()
     create_configs_button = types.InlineKeyboardButton(button_content['Create Configurations'], callback_data='configurations')
     
     keyboard.row(create_configs_button)
-    bot.send_message(message.chat.id, messages_content['welcome']
+    bot.send_message(message.chat.id, content
                      , reply_markup=keyboard)
     
 
 def prepare_configs_panel(bot, chatId, configurations): 
-    links_dict = prepare_links_dictionary(bot, configurations)
+    links_dict = prepare_links_dictionary(configurations)
     keyboard = types.InlineKeyboardMarkup()
     for link in links_dict: 
         button = types.InlineKeyboardButton(link, callback_data=link)
@@ -45,7 +45,7 @@ def create_reply_keyboard_panel(bot, chatId, txtMessage):
     bot.send_message(chatId, txtMessage, reply_markup=keyboard)
 
 
-def prepare_links_dictionary(bot, configurations):
+def prepare_links_dictionary(configurations):
     pattern = r'spx=#([^%]+)'
     parsed_data_dict = {}
     for config in configurations:
