@@ -15,8 +15,8 @@ class MarzbanApiFacade():
         try:
             url = f'{os.getenv("MARZBAN_API_HOST")}/api/admin/token'
             data = {
-                'username': 'Seif',
-                'password': 'aWdkQgvF',
+                'username': os.getenv("MARZBAN_ADMIN_USERNAME"),
+                'password': os.getenv("MARZBAN_ADMIN_PASSWORD"),
                 'grant_type': 'password'
             }
             response = requests.post(url, data=data)
