@@ -18,8 +18,8 @@ services:
   app:
     build: .
     restart: always
-    volumes:
-      - .:/usr/src/app
+    # volumes:
+      # - .:/usr/src/app
     depends_on: 
       mysql:
         condition: service_healthy
