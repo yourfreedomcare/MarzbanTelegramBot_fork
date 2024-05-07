@@ -1,5 +1,5 @@
-## MarzbanTelegramBot
-# Использование на Android устройствах:
+# MarzbanTelegramBot
+## Использование на Android устройствах:
 - 1: Качаем и устанавливаем клиент ***Мы настоятельно рекомендуем использовать v2rayNG*** [Google Play](https://github.com/2dust/v2rayNG/releases) [GitHub](https://github.com/2dust/v2rayNG/releases)
 - 2: Запускаем бот кнопкой или командой /start ![Step1](https://github.com/fractalshine/MarzbanTelegramBot/assets/169190363/1e3519ce-1f00-4ef7-9dfa-289a96fccb61)
 - 3: Нажимаем кнопку "Get Configurations" ![Step2](https://github.com/fractalshine/MarzbanTelegramBot/assets/169190363/9b84dc2e-6974-4193-a4ef-7edd5c6aab1f)
