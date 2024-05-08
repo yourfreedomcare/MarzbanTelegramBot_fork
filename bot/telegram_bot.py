@@ -81,7 +81,7 @@ class TelegramBot():
 
 
     # Configs Retrieval 
-    @bot.message_handler(func=lambda message: message.text == 'Получить ключи')
+    @bot.message_handler(func=lambda message: message.text == '🔑Получить ключи')
     def get_configurations(message):
         try:
             telegram_user_id = retrieve_username(message.from_user)
@@ -96,7 +96,7 @@ class TelegramBot():
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
 
     # Manuals Retrieval 
-    @bot.message_handler(func=lambda message: message.text == 'Помощь')
+    @bot.message_handler(func=lambda message: message.text == '🛟Помощь')
     def get_manuals(message):
         try:
             manuals = messages_content['manuals'].format(link=os.getenv("MANUALS_LINK"))
