@@ -99,7 +99,7 @@ class TelegramBot():
     @bot.message_handler(func=lambda message: message.text == '🛟 Помощь')
     def get_manuals(message):
         try:
-            manuals = messages_content['manuals'].format(link=os.getenv("MANUALS_LINK"))
+            manuals = messages_content['manuals'].format(link=os.getenv("MANUALS_LINK"), support=os.getenv("SUPPORT_TG"))
             TelegramBot.bot.send_message(message.chat.id, manuals, parse_mode='HTML')
         except Exception: 
             logger.error(f"Exception -> get_manuals: ", exc_info=True)

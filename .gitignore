@@ -7,3 +7,6 @@ __pycache__/
 # Igore DS Store
 
 .DS_Store
+
+# unnesessery files
+container_data/

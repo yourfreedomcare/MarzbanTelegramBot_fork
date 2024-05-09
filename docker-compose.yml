@@ -1,21 +1,17 @@
 services:
   mysql:
-    platform: linux/x86_64
     image: mysql:latest
     restart: always
     env_file: .env
-    expose:
-      - "3306"
-      - "33060"
     volumes:
-      - /var/lib/marzban/mysql:/var/lib/mysql
+      - ./container_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "0.0.0.0"]
       interval: 10s
       timeout: 5s
       retries: 3
 
-  app:
+  tg_bot:
     build: .
     restart: always
     volumes:
