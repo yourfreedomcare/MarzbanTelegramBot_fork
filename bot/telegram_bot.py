@@ -106,7 +106,7 @@ class TelegramBot():
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
 
     # Vless links retrieval 
-    @bot.callback_query_handler(func = lambda call: call.message.text == "Find below the available Configs!")
+    @bot.callback_query_handler(func = lambda call: call.message.text == "Твои ключи ⬇️")
     def return_link_callback_query(call): 
         try:
             telegram_user_id = retrieve_username(call.from_user)
