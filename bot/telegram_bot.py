@@ -31,7 +31,7 @@ class TelegramBot():
             if user == None or len(configurations) == 0 : 
                 if user == None:
                     UserRepository.create_new_user(telegram_user_id)
-                show_create_configurations_message(TelegramBot.bot, message, messages_content['welcome'])
+                show_create_configurations_message(TelegramBot.bot, message, messages_content['welcome'].format(breakpoint="\n\n"))
             else:
                 create_reply_keyboard_panel(TelegramBot.bot, message.chat.id, messages_content['welcome_back'])
         except Exception: 
