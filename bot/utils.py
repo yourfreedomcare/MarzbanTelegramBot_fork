@@ -3,6 +3,7 @@ Utils file include all the helper functions user by the
 bot class
 '''
 from telebot import types
+from urllib.parse import unquote
 from marzban_api.marzban_service import MarzbanService
 from database.user import UserRepository
 import re, json
@@ -46,7 +47,7 @@ def create_reply_keyboard_panel(bot, chatId, txtMessage):
 
 
 def prepare_links_dictionary(configurations):
-    pattern = r'spx=#([^%]+)'
+    pattern = r'%5B([^%]+)%5D'
     parsed_data_dict = {}
     for config in configurations:
         if 'vless' in config.vless_link: 
@@ -55,6 +56,20 @@ def prepare_links_dictionary(configurations):
                 parsed_data = match.group(1)
                 parsed_data_dict[parsed_data] = config.vless_link
 
+    return parsed_data_dict
+
+def prepare_links_dictionary_rework(configurations):
+    pattern = r'%5B.*?%5D'  # Matches everything between %5B and %5D inclusively
+    parsed_data_dict = {}
+    for config in configurations:
+        match = re.search(pattern, config.vless_link)
+        if match:
+            # Decode the matched part to get the label with emojis and spaces
+            decoded_label = unquote(match.group(0))
+            # Remove the brackets to isolate the label
+            label = decoded_label.strip('[]')
+            parsed_data_dict[label] = config.vless_link
+    
     return parsed_data_dict
 
 def refresh_configs():

@@ -11,3 +11,4 @@ __pycache__/
 # unnesessery files
 container_data/
 docker-compose.yml
+*test.py
