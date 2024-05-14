@@ -111,7 +111,7 @@ class TelegramBot():
         try:
             telegram_user_id = retrieve_username(call.from_user)
             configurations = UserRepository.get_user_configurations(telegram_user_id)
-            d = prepare_links_dictionary(configurations)
+            d = prepare_links_dictionary_rework(configurations)
             if d[call.data]:
                 TelegramBot.bot.send_message(call.message.chat.id, messages_content['link_available'].format(breakpoint="\n\n", link=d[call.data]), parse_mode='Markdown')
             else: 
