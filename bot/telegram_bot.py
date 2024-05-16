@@ -113,7 +113,8 @@ class TelegramBot():
             configurations = UserRepository.get_user_configurations(telegram_user_id)
             d = prepare_links_dictionary_rework(configurations)
             if d[call.data]:
-                TelegramBot.bot.send_message(call.message.chat.id, messages_content['link_available'].format(breakpoint="\n\n", link=d[call.data]), parse_mode='Markdown')
+                TelegramBot.bot.send_message(call.message.chat.id, messages_content['link_available_1'].format(link=os.getenv("MANUALS_LINK")), parse_mode='HTML')
+                TelegramBot.bot.send_message(call.message.chat.id, messages_content['link_available_2'].format(breakpoint="\n\n", link=d[call.data]), parse_mode='Markdown')
             else: 
                 TelegramBot.bot.send_message(call.message.chat.id, messages_content['link_unavailable'].format(locatuon=call.data))
         except Exception: 
