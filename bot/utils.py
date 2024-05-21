@@ -3,7 +3,7 @@ Utils file include all the helper functions user by the
 bot class
 '''
 from telebot import types
-from urllib.parse import unquote
+import urllib.parse
 from marzban_api.marzban_service import MarzbanService
 from database.user import UserRepository
 import re, json
@@ -24,7 +24,7 @@ def show_create_configurations_message(bot, message, content):
     
 
 def prepare_configs_panel(bot, chatId, configurations): 
-    links_dict = prepare_links_dictionary(configurations)
+    links_dict = prepare_links_dictionary_rework(configurations)
     keyboard = types.InlineKeyboardMarkup()
     for link in links_dict: 
         button = types.InlineKeyboardButton(link, callback_data=link)
@@ -37,15 +37,14 @@ def create_reply_keyboard_panel(bot, chatId, txtMessage):
     keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     
     # Define the buttons
-    button1 = types.KeyboardButton(button_content['Get Configurations'])
-    button2 = types.KeyboardButton(button_content['Get Manuals'])
+    getConfigs = types.KeyboardButton(button_content['Get Configurations'])
+    getManuals = types.KeyboardButton(button_content['Get Manuals'])
     # Add buttons to the keyboard
-    keyboard.add(button1, button2)
-    
+    keyboard.add(getConfigs, getManuals)
     # Send a message with the reply keyboard
     bot.send_message(chatId, txtMessage, reply_markup=keyboard)
 
-
+@DeprecationWarning
 def prepare_links_dictionary(configurations):
     pattern = r'%5B([^%]+)%5D'
     parsed_data_dict = {}
@@ -59,16 +58,19 @@ def prepare_links_dictionary(configurations):
     return parsed_data_dict
 
 def prepare_links_dictionary_rework(configurations):
-    pattern = r'%5B.*?%5D'  # Matches everything between %5B and %5D inclusively
+    start_idx = "%5B"
+    end_idx = "%5D"
     parsed_data_dict = {}
-    for config in configurations:
-        match = re.search(pattern, config.vless_link)
-        if match:
-            # Decode the matched part to get the label with emojis and spaces
-            decoded_label = unquote(match.group(0))
-            # Remove the brackets to isolate the label
-            label = decoded_label.strip('[]')
-            parsed_data_dict[label] = config.vless_link
+    for config in configurations: 
+        spx_value = re.search(r'spx=#([^&]+)', config.vless_link).group(1)
+        print(spx_value)
+        idx1 = spx_value.index(start_idx)
+        idx2 = spx_value.index(end_idx)
+
+        config_title = spx_value[idx1+ len(start_idx) : idx2 ]
+        print(config_title)
+
+        parsed_data_dict[urllib.parse.unquote(urllib.parse.unquote_plus(config_title))] = config.vless_link
     
     return parsed_data_dict
 
