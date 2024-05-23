@@ -1,6 +1,7 @@
 FROM python:3.9
 
 WORKDIR /usr/src/app
+ENV PYTHONPATH=/usr/src/app
 COPY . .
 
 

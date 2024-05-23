@@ -30,7 +30,8 @@ class TelegramBot():
 
             if user == None or len(configurations) == 0 : 
                 if user == None:
-                    UserRepository.create_new_user(telegram_user_id)
+                    logger.info(f"chat id {message.chat.id}")
+                    UserRepository.create_new_user(telegram_user_id, message.chat.id)
                 show_create_configurations_message(TelegramBot.bot, message, messages_content['welcome'].format(breakpoint="\n\n"))
             else:
                 create_reply_keyboard_panel(TelegramBot.bot, message.chat.id, messages_content['welcome_back'])
@@ -72,7 +73,7 @@ class TelegramBot():
                 if status_code > 299: 
                     raise Exception("Failed API Call")
 
-                UserRepository.insert_configurations(telegram_user_id, user_data['links'])
+                UserRepository.insert_configurations(telegram_user_id, call.message.chat.id, user_data['links'])
                 create_reply_keyboard_panel(TelegramBot.bot, call.message.chat.id, messages_content['created_configs'])
         except Exception: 
             logger.error(f"Exception -> configurations_callback_query: ", exc_info=True)
