@@ -12,3 +12,4 @@ __pycache__/
 container_data/
 docker-compose.yml
 *test.py
+*.logs
