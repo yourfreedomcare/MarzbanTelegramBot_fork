@@ -16,7 +16,6 @@ import os
 
 class TelegramBot():
     bot = TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
-    Base.metadata.create_all(engine)        
     admin_users = os.getenv('ADMIN_USERS').split(',')
 
 

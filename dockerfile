@@ -8,4 +8,4 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 
-CMD ["python3", "app.py"]
+CMD ["sh", "-c", "alembic upgrade head && python3 app.py"]
