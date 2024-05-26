@@ -44,6 +44,12 @@ def create_reply_keyboard_panel(bot, chatId, txtMessage):
     # Send a message with the reply keyboard
     bot.send_message(chatId, txtMessage, reply_markup=keyboard)
 
+def create_needs_update_message(bot, chat_id):
+    keyboard = types.InlineKeyboardMarkup()
+    button = types.InlineKeyboardButton(button_content['update'], callback_data='update')
+    keyboard.add(button)
+    bot.send_message(chat_id, messages_content['update'], reply_markup=keyboard)
+
 @DeprecationWarning
 def prepare_links_dictionary(configurations):
     pattern = r'%5B([^%]+)%5D'

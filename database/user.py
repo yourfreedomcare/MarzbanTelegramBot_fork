@@ -10,7 +10,7 @@ from sqlalchemy.orm import relationship
 from .base import Base, Session
 from .configurations import Configurations
 
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, Boolean, update
 from sqlalchemy.orm import relationship
 from .base import Base
 from marzban_api.marzban_api_facade import MarzbanApiFacade
@@ -21,6 +21,7 @@ class User(Base):
 
     telegram_user_id = Column(String(255), primary_key=True)
     chat_id = Column(String(255))
+    is_updated = Column(Boolean)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     configurations = relationship('Configurations', back_populates='user', cascade='all, delete-orphan')
@@ -28,6 +29,7 @@ class User(Base):
     def __init__(self, telegram_user_id, chat_id=None):
         self.telegram_user_id = telegram_user_id
         self.chat_id = chat_id
+        self.is_updated = True
 
 class UserRepository(): 
 
@@ -134,4 +136,40 @@ class UserRepository():
                         session.rollback()
                 else: 
                     continue
+    
+    @staticmethod
+    def mark_users_for_update():
+        with Session() as session: 
+            with session.begin(): 
+                try: 
+                    session.execute(
+                        update(User).
+                        values(is_updated=False)
+                    )
+                    session.commit()
+                except:
+                    logger.error("Exception -> mark_users_for_update", exc_info=True)
+                    session.rollback()
+                finally:
+                    session.close()
+
+    @staticmethod 
+    def mark_user_as_updated(telegram_user_id): 
+        with Session() as session: 
+            with session.begin(): 
+                try: 
+                    session.execute(
+                        update(User).
+                        where(User.telegram_user_id == telegram_user_id). 
+                        values(is_updated=True)
+                    )
+                    
+                    session.commit()
+                except: 
+                    logger.error("Exception -> mark_user_as_updated", exc_info=True)
+                    session.rollback()
+                finally:
+                    session.close()
+                    
+
 
