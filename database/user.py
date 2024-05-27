@@ -20,14 +20,31 @@ class User(Base):
     __tablename__ = 'telegram_users'
 
     telegram_user_id = Column(String(255), primary_key=True)
+    chat_id = Column(String(255))
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     configurations = relationship('Configurations', back_populates='user', cascade='all, delete-orphan')
 
-    def __init__(self, telegram_user_id):
+    def __init__(self, telegram_user_id, chat_id=None):
         self.telegram_user_id = telegram_user_id
+        self.chat_id = chat_id
 
 class UserRepository(): 
+
+    @staticmethod
+    def get_users(): 
+        with Session() as session: 
+            with session.begin(): 
+                try: 
+                    logger.info('get_users -> getting all users data')
+                    users = session.query(User).all()
+                except Exception: 
+                    logger.error("Exception -> get_users: ", exc_info=True)
+                    session.rollback
+                finally: 
+                    session.close()
+        return users
+
     @staticmethod
     def get_user(telegram_user_id): 
         with Session() as session: 
@@ -58,12 +75,12 @@ class UserRepository():
 
 
     @staticmethod
-    def create_new_user(telegram_user_id): 
+    def create_new_user(telegram_user_id, chat_id): 
         with Session() as session: 
             with session.begin(): 
                 try: 
                     logger.info('create_new_user -> creating new user')
-                    new_user = User(telegram_user_id)
+                    new_user = User(telegram_user_id, chat_id)
                     session.add(new_user)
                 except Exception:
                     logger.error(f"Exception -> create_new_user: ", exc_info=True)
@@ -72,12 +89,12 @@ class UserRepository():
                     session.commit()
         
     @staticmethod
-    def insert_configurations(telegram_user_id, links): 
+    def insert_configurations(telegram_user_id, chat_id, links): 
         try: 
             with Session() as session: 
                 user = session.query(User).filter_by(telegram_user_id=telegram_user_id).first()
                 if user is None:
-                    user = User(telegram_user_id=telegram_user_id)
+                    user = User(telegram_user_id, chat_id)
                     session.add(user)
                     session.flush()
 

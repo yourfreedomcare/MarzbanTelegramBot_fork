@@ -30,8 +30,9 @@ class TelegramBot():
 
             if user == None or len(configurations) == 0 : 
                 if user == None:
-                    UserRepository.create_new_user(telegram_user_id)
-                show_create_configurations_message(TelegramBot.bot, message, messages_content['welcome'])
+                    logger.info(f"chat id {message.chat.id}")
+                    UserRepository.create_new_user(telegram_user_id, message.chat.id)
+                show_create_configurations_message(TelegramBot.bot, message, messages_content['welcome'].format(breakpoint="\n\n"))
             else:
                 create_reply_keyboard_panel(TelegramBot.bot, message.chat.id, messages_content['welcome_back'])
         except Exception: 
@@ -72,7 +73,7 @@ class TelegramBot():
                 if status_code > 299: 
                     raise Exception("Failed API Call")
 
-                UserRepository.insert_configurations(telegram_user_id, user_data['links'])
+                UserRepository.insert_configurations(telegram_user_id, call.message.chat.id, user_data['links'])
                 create_reply_keyboard_panel(TelegramBot.bot, call.message.chat.id, messages_content['created_configs'])
         except Exception: 
             logger.error(f"Exception -> configurations_callback_query: ", exc_info=True)
@@ -81,7 +82,7 @@ class TelegramBot():
 
 
     # Configs Retrieval 
-    @bot.message_handler(func=lambda message: message.text == 'Get Configurations')
+    @bot.message_handler(func=lambda message: message.text == '🔑 Получить ключи')
     def get_configurations(message):
         try:
             telegram_user_id = retrieve_username(message.from_user)
@@ -96,24 +97,25 @@ class TelegramBot():
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
 
     # Manuals Retrieval 
-    @bot.message_handler(func=lambda message: message.text == 'Get Manuals')
+    @bot.message_handler(func=lambda message: message.text == '🛟 Помощь')
     def get_manuals(message):
         try:
-            manuals = messages_content['manuals'].format(link=os.getenv("MANUALS_LINK"))
+            manuals = messages_content['manuals'].format(link=os.getenv("MANUALS_LINK"), support=os.getenv("SUPPORT_TG"))
             TelegramBot.bot.send_message(message.chat.id, manuals, parse_mode='HTML')
         except Exception: 
             logger.error(f"Exception -> get_manuals: ", exc_info=True)
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
 
     # Vless links retrieval 
-    @bot.callback_query_handler(func = lambda call: call.message.text == "Find below the available Configs!")
+    @bot.callback_query_handler(func = lambda call: call.message.text == "🌍 Выбери локацию сервера")
     def return_link_callback_query(call): 
         try:
             telegram_user_id = retrieve_username(call.from_user)
             configurations = UserRepository.get_user_configurations(telegram_user_id)
-            d = prepare_links_dictionary(configurations)
+            d = prepare_links_dictionary_rework(configurations)
             if d[call.data]:
-                TelegramBot.bot.send_message(call.message.chat.id, messages_content['link_available'].format(breakpoint="\n\n", link=d[call.data]), parse_mode='Markdown')
+                TelegramBot.bot.send_message(call.message.chat.id, messages_content['link_available_1'].format(link=os.getenv("MANUALS_LINK")), parse_mode='HTML')
+                TelegramBot.bot.send_message(call.message.chat.id, messages_content['link_available_2'].format(breakpoint="\n\n", link=d[call.data]), parse_mode='Markdown')
             else: 
                 TelegramBot.bot.send_message(call.message.chat.id, messages_content['link_unavailable'].format(locatuon=call.data))
         except Exception: 
