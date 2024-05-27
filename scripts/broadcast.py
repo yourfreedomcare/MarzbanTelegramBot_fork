@@ -1,4 +1,3 @@
-from telebot import TeleBot
 from database.user import UserRepository
 from bot.telegram_bot import TelegramBot
 import sys 

@@ -3,11 +3,8 @@ File includes the main Telegram bot class
 with all the availabe message callbacks and query callbacks 
 '''
 
-
-
 from telebot import TeleBot
 from logger import logger
-from database.base import Base, engine
 from .utils import *
 from database.user import UserRepository
 from marzban_api.marzban_service import MarzbanService
@@ -16,9 +13,20 @@ import os
 
 class TelegramBot():
     bot = TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
-    Base.metadata.create_all(engine)        
     admin_users = os.getenv('ADMIN_USERS').split(',')
 
+    def check_if_needs_update(func):
+        def inner(obj): 
+            try:
+                user, _ =  UserRepository.get_user(retrieve_username(obj.from_user)) 
+                if user is not None and user.is_updated:
+                    return func(obj)
+                else: 
+                    return create_needs_update_message(TelegramBot.bot, user.chat_id)
+            except Exception: 
+                logger.error(f"Exception -> check_if_needs_update: ", exc_info=True)
+                TelegramBot.bot.send_message(user.chat_id, messages_content['unexpected_error'])
+        return inner
 
     # Starting point of bot
     @bot.message_handler(commands=['start'])
@@ -38,6 +46,11 @@ class TelegramBot():
         except Exception: 
             logger.error(f"Exception -> entrypoint: ", exc_info=True)
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
+    
+    @bot.callback_query_handler(func=lambda call: call.data in ['update'])
+    def update(call):
+        UserRepository.mark_user_as_updated(retrieve_username(call.from_user))
+        create_reply_keyboard_panel(TelegramBot.bot, call.message.chat.id, "Updated")
 
 
     # Refresh configs function used only by the Admins 
@@ -55,9 +68,25 @@ class TelegramBot():
             logger.error(f"Exception -> entrypoint: ", exc_info=True)
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
 
+    
+    # Mark users as not updated, used by admins 
+    @bot.message_handler(commands=['force_update'])
+    def mark_users_as_not_updated(message): 
+        try:
+            telegram_user_id = retrieve_username(message.from_user)
+            if telegram_user_id in TelegramBot.admin_users: 
+                UserRepository.mark_users_for_update() 
+                TelegramBot.bot.send_message(message.chat.id, 'Success')
+            else: 
+                TelegramBot.bot.send_message(message.chat.id, messages_content['default_fallback'])
+        except Exception: 
+            logger.error(f"Exception -> entrypoint: ", exc_info=True)
+            TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
+            
 
     # User/Configs Creation
     @bot.callback_query_handler(func=lambda call: call.data in ['configurations'])
+    @check_if_needs_update
     def configurations_callback_query(call):
         try:
             telegram_user_id = retrieve_username(call.from_user)
@@ -83,6 +112,7 @@ class TelegramBot():
 
     # Configs Retrieval 
     @bot.message_handler(func=lambda message: message.text == '🔑 Получить ключи')
+    @check_if_needs_update
     def get_configurations(message):
         try:
             telegram_user_id = retrieve_username(message.from_user)
@@ -98,6 +128,7 @@ class TelegramBot():
 
     # Manuals Retrieval 
     @bot.message_handler(func=lambda message: message.text == '🛟 Помощь')
+    @check_if_needs_update
     def get_manuals(message):
         try:
             manuals = messages_content['manuals'].format(link=os.getenv("MANUALS_LINK"), support=os.getenv("SUPPORT_TG"))
@@ -108,6 +139,7 @@ class TelegramBot():
 
     # Vless links retrieval 
     @bot.callback_query_handler(func = lambda call: call.message.text == "🌍 Выбери локацию сервера")
+    @check_if_needs_update
     def return_link_callback_query(call): 
         try:
             telegram_user_id = retrieve_username(call.from_user)
