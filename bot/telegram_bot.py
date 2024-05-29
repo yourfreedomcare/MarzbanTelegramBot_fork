@@ -42,6 +42,8 @@ class TelegramBot():
                     UserRepository.create_new_user(telegram_user_id, message.chat.id)
                 show_create_configurations_message(TelegramBot.bot, message, messages_content['welcome'].format(breakpoint="\n\n"))
             else:
+                if not user.is_updated:
+                    UserRepository.mark_user_as_updated(telegram_user_id)
                 create_reply_keyboard_panel(TelegramBot.bot, message.chat.id, messages_content['welcome_back'])
         except Exception: 
             logger.error(f"Exception -> entrypoint: ", exc_info=True)
@@ -111,6 +113,7 @@ class TelegramBot():
 
 
     # Configs Retrieval 
+
     @bot.message_handler(func=lambda message: message.text == button_content['Get Configurations'])
     @check_if_needs_update
     def get_configurations(message):
@@ -138,6 +141,7 @@ class TelegramBot():
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
 
     # Vless links retrieval 
+
     @bot.callback_query_handler(func = lambda call: call.message.text == messages_content['configs_panel'])
     @check_if_needs_update
     def return_link_callback_query(call): 
@@ -156,6 +160,7 @@ class TelegramBot():
 
     # Default fallback for any unrecognized message 
     @bot.message_handler(func=lambda message: True)
+    @check_if_needs_update
     def default_message(message):
         TelegramBot.bot.send_message(message.chat.id, messages_content['default_fallback'])
 
