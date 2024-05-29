@@ -113,7 +113,8 @@ class TelegramBot():
 
 
     # Configs Retrieval 
-    @bot.message_handler(func=lambda message: message.text == button_content["Get Configurations"])
+
+    @bot.message_handler(func=lambda message: message.text == button_content['Get Configurations'])
     @check_if_needs_update
     def get_configurations(message):
         try:
@@ -140,7 +141,8 @@ class TelegramBot():
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
 
     # Vless links retrieval 
-    @bot.callback_query_handler(func = lambda call: call.message.text == messages_content["configs_panel"])
+
+    @bot.callback_query_handler(func = lambda call: call.message.text == messages_content['configs_panel'])
     @check_if_needs_update
     def return_link_callback_query(call): 
         try:
