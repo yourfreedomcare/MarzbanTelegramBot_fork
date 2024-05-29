@@ -52,7 +52,7 @@ class TelegramBot():
     @bot.callback_query_handler(func=lambda call: call.data in ['update'])
     def update(call):
         UserRepository.mark_user_as_updated(retrieve_username(call.from_user))
-        create_reply_keyboard_panel(TelegramBot.bot, call.message.chat.id, "Updated")
+        create_reply_keyboard_panel(TelegramBot.bot, call.message.chat.id, messages_content['updated'])
 
 
     # Refresh configs function used only by the Admins 
