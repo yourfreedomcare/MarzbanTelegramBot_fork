@@ -14,6 +14,7 @@ import os
 class TelegramBot():
     bot = TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
     admin_users = os.getenv('ADMIN_USERS').split(',')
+    admin_user_broadcasts = set()
 
     def check_if_needs_update(func):
         def inner(obj): 
@@ -44,19 +45,30 @@ class TelegramBot():
             else:
                 if not user.is_updated:
                     UserRepository.mark_user_as_updated(telegram_user_id)
-                create_reply_keyboard_panel(TelegramBot.bot, message.chat.id, messages_content['welcome_back'])
+                create_reply_keyboard_panel(
+                    telegram_user_id in TelegramBot.admin_users, 
+                    TelegramBot.bot, 
+                    message.chat.id, 
+                    messages_content['welcome_back']
+                    )
         except Exception: 
             logger.error(f"Exception -> entrypoint: ", exc_info=True)
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
     
     @bot.callback_query_handler(func=lambda call: call.data in ['update'])
     def update(call):
-        UserRepository.mark_user_as_updated(retrieve_username(call.from_user))
-        create_reply_keyboard_panel(TelegramBot.bot, call.message.chat.id, "Updated")
+        telegram_user_id = retrieve_username(call.from_user)
+        UserRepository.mark_user_as_updated(telegram_user_id)
+        create_reply_keyboard_panel(
+            telegram_user_id in TelegramBot.admin_users,
+            TelegramBot.bot, 
+            call.message.chat.id, 
+            "Updated"
+            )
 
 
     # Refresh configs function used only by the Admins 
-    @bot.message_handler(commands=['refresh'])
+    @bot.message_handler(func=lambda message: message.text == button_content["Refresh Configs"])
     def refresh_logic(message): 
         try:
             telegram_user_id = retrieve_username(message.from_user)
@@ -72,7 +84,7 @@ class TelegramBot():
 
     
     # Mark users as not updated, used by admins 
-    @bot.message_handler(commands=['force_update'])
+    @bot.message_handler(func=lambda message: message.text == button_content["Force Update"])
     def mark_users_as_not_updated(message): 
         try:
             telegram_user_id = retrieve_username(message.from_user)
@@ -105,7 +117,12 @@ class TelegramBot():
                     raise Exception("Failed API Call")
 
                 UserRepository.insert_configurations(telegram_user_id, call.message.chat.id, user_data['links'])
-                create_reply_keyboard_panel(TelegramBot.bot, call.message.chat.id, messages_content['created_configs'])
+                create_reply_keyboard_panel(
+                    telegram_user_id in TelegramBot.admin_users,
+                    TelegramBot.bot, 
+                    call.message.chat.id, 
+                    messages_content['created_configs']
+                    )
         except Exception: 
             logger.error(f"Exception -> configurations_callback_query: ", exc_info=True)
             logger.error(f"API Response -> {user_data} ")
@@ -126,6 +143,21 @@ class TelegramBot():
 
         except Exception: 
             logger.error(f"Exception -> get_configurations: ", exc_info=True)
+            TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
+
+    
+    # Configs Retrieval 
+    @bot.message_handler(func=lambda message: message.text == button_content["Broadcast"])
+    @check_if_needs_update
+    def Broadcast(message):
+        try:
+            telegram_user_id = retrieve_username(message.from_user)
+            if telegram_user_id in TelegramBot.admin_users: 
+                TelegramBot.bot.send_message(message.chat.id, "Insert the broadcast message and send: ")
+                TelegramBot.admin_user_broadcasts.add(telegram_user_id)
+
+        except Exception: 
+            logger.error(f"Exception -> Broadcast: ", exc_info=True)
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
 
     # Manuals Retrieval 
@@ -160,7 +192,14 @@ class TelegramBot():
     @bot.message_handler(func=lambda message: True)
     @check_if_needs_update
     def default_message(message):
-        TelegramBot.bot.send_message(message.chat.id, messages_content['default_fallback'])
+        telegram_user_id = retrieve_username(message.from_user)
+        if telegram_user_id in TelegramBot.admin_users and telegram_user_id in TelegramBot.admin_user_broadcasts:
+            users = UserRepository.get_users()
+            for user in users: 
+                TelegramBot.bot.send_message(user.chat_id, message.text)
+            TelegramBot.admin_user_broadcasts.discard(telegram_user_id)
+        else:
+            TelegramBot.bot.send_message(message.chat.id, messages_content['default_fallback'])
 
     def start_bot(self):
         TelegramBot.bot.polling() 
