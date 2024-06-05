@@ -33,14 +33,22 @@ def prepare_configs_panel(bot, chatId, configurations):
     bot.send_message(chatId, messages_content['configs_panel'], reply_markup=keyboard)
 
 
-def create_reply_keyboard_panel(bot, chatId, txtMessage):
+def create_reply_keyboard_panel(isAdmin, bot, chatId, txtMessage):
     keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     
     # Define the buttons
     getConfigs = types.KeyboardButton(button_content['Get Configurations'])
     getManuals = types.KeyboardButton(button_content['Get Manuals'])
+    forceUpdate = types.KeyboardButton(button_content['Force Update'])
+    refreshConfigs = types.KeyboardButton(button_content['Refresh Configs'])
+    broadcast = types.KeyboardButton(button_content['Broadcast'])
+
+
     # Add buttons to the keyboard
     keyboard.add(getConfigs, getManuals)
+    if isAdmin: 
+        keyboard.add(forceUpdate, refreshConfigs, broadcast)
+
     # Send a message with the reply keyboard
     bot.send_message(chatId, txtMessage, reply_markup=keyboard)
 
