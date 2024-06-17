@@ -28,8 +28,17 @@ class TelegramBot():
                 logger.error(f"Exception -> check_if_needs_update: ", exc_info=True)
                 TelegramBot.bot.send_message(user.chat_id, messages_content['unexpected_error'])
         return inner
+    
+    def empty_admin_user_broadcasts(func):
+        def inner(obj): 
+            if len(TelegramBot.admin_user_broadcasts) > 1: 
+                TelegramBot.admin_user_broadcasts.discard(retrieve_username(obj.from_user))
+                logger.error("Inner -> empty_admin_user_broadcasts")
+            return func(obj)
+        return inner
 
     # Starting point of bot
+    @empty_admin_user_broadcasts
     @bot.message_handler(commands=['start'])
     def entrypoint(message): 
         try:
@@ -55,6 +64,7 @@ class TelegramBot():
             logger.error(f"Exception -> entrypoint: ", exc_info=True)
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
     
+    @empty_admin_user_broadcasts
     @bot.callback_query_handler(func=lambda call: call.data in ['update'])
     def update(call):
         telegram_user_id = retrieve_username(call.from_user)
@@ -68,6 +78,7 @@ class TelegramBot():
 
 
     # Refresh configs function used only by the Admins 
+    @empty_admin_user_broadcasts
     @bot.message_handler(func=lambda message: message.text == button_content["Refresh Configs"])
     def refresh_logic(message): 
         try:
@@ -84,6 +95,7 @@ class TelegramBot():
 
     
     # Mark users as not updated, used by admins 
+    @empty_admin_user_broadcasts
     @bot.message_handler(func=lambda message: message.text == button_content["Force Update"])
     def mark_users_as_not_updated(message): 
         try:
@@ -100,6 +112,7 @@ class TelegramBot():
 
     # User/Configs Creation
     @bot.callback_query_handler(func=lambda call: call.data in ['configurations'])
+    @empty_admin_user_broadcasts
     @check_if_needs_update
     def configurations_callback_query(call):
         try:
@@ -132,6 +145,7 @@ class TelegramBot():
     # Configs Retrieval 
 
     @bot.message_handler(func=lambda message: message.text == button_content['Get Configurations'])
+    @empty_admin_user_broadcasts
     @check_if_needs_update
     def get_configurations(message):
         try:
@@ -163,6 +177,7 @@ class TelegramBot():
 
     # Manuals Retrieval 
     @bot.message_handler(func=lambda message: message.text == button_content['Get Manuals'])
+    @empty_admin_user_broadcasts
     @check_if_needs_update
     def get_manuals(message):
         try:
@@ -175,6 +190,7 @@ class TelegramBot():
     # Vless links retrieval 
 
     @bot.callback_query_handler(func = lambda call: call.message.text == messages_content['configs_panel'])
+    @empty_admin_user_broadcasts
     @check_if_needs_update
     def return_link_callback_query(call): 
         try:
@@ -197,8 +213,14 @@ class TelegramBot():
         telegram_user_id = retrieve_username(message.from_user)
         if telegram_user_id in TelegramBot.admin_users and telegram_user_id in TelegramBot.admin_user_broadcasts:
             users = UserRepository.get_users()
-            for user in users: 
-                TelegramBot.bot.send_message(user.chat_id, message.text)
+            for user in users:
+                try:
+                    logger.info(f"chat_id: {user.chat_id}  is_updated: {user.is_updated}")
+                    TelegramBot.bot.send_message(user.chat_id, message.text)
+                    logger.info(f"Done {user.chat_id}")
+                except:
+                    logger.error(f'Exception ->{user.chat_id}', exc_info=True)
+                    continue
             TelegramBot.admin_user_broadcasts.discard(telegram_user_id)
         else:
             TelegramBot.bot.send_message(message.chat.id, messages_content['default_fallback'])

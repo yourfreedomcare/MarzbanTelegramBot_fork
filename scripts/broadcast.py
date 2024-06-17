@@ -12,7 +12,9 @@ message_content = sys.argv[1]
 users = UserRepository.get_users()
 for user in users: 
     try:
+        logger.info(f"chat_id: {user.chat_id}  is_updated: {user.is_updated}")
         telegram_bot.bot.send_message(user.chat_id, message_content)
+        logger.info(f"Done {user.chat_id}")
     except:
         logger.error(f'Exception ->{user.chat_id}', exc_info=True)
         continue
