@@ -52,7 +52,7 @@ class UserRepository():
         with Session() as session: 
             with session.begin(): 
                 try: 
-                    logger.info('get_user -> grabbing user\'s data')
+                    logger.info(f'get_user {telegram_user_id} -> grabbing user\'s data')
                     user = session.query(User).filter_by(telegram_user_id=telegram_user_id).first()
                     configurations = None if user == None else user.configurations
                     session.close()
