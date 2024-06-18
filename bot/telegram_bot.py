@@ -161,7 +161,7 @@ class TelegramBot():
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
 
     
-    # Configs Retrieval 
+    # Broadcast message
     @bot.message_handler(func=lambda message: message.text == button_content["Broadcast"])
     @check_if_needs_update
     def Broadcast(message):
