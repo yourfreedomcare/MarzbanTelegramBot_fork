@@ -76,7 +76,7 @@ def prepare_links_dictionary_rework(configurations):
     end_idx = "%5D"
     parsed_data_dict = {}
     for config in configurations: 
-        spx_value = re.search(r'spx=#([^&]+)', config.vless_link).group(1)
+        spx_value = re.search(r'sid=#([^&]+)', config.vless_link).group(1)
         print(spx_value)
         idx1 = spx_value.index(start_idx)
         idx2 = spx_value.index(end_idx)
