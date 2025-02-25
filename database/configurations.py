@@ -11,7 +11,7 @@ class Configurations(Base):
     
     id = Column(Integer, primary_key=True)
     vless_link = Column(String(8000))
-    telegram_user_id = Column(String(255), ForeignKey('telegram_users.telegram_user_id'))
+    telegram_user_id = Column(String(255), ForeignKey('telegram_users.telegram_user_id', ondelete='CASCADE'))
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     user = relationship('User', back_populates='configurations') 
