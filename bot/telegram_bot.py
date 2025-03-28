@@ -134,7 +134,7 @@ class TelegramBot():
                 user_data, status_code, access_token = MarzbanService.create_marzaban_user(telegram_user_id)
 
                 if status_code == 200: # marzban get api will execute only one time after user creation
-                    user_data, status_code = MarzbanService.get_marzaban_user(telegram_user_id, access_token)
+                    UserRepository.insert_configurations(telegram_user_id, call.message.chat.id, user_data['links'])
 
                 if status_code == 409: 
                     logger.warning(f"Got 409 for user {telegram_user_id}. Falling back to DB.")
@@ -146,7 +146,7 @@ class TelegramBot():
                 if status_code > 299: 
                     raise Exception("Failed API Call")
 
-                UserRepository.insert_configurations(telegram_user_id, call.message.chat.id, user_data['links'])
+                # UserRepository.insert_configurations(telegram_user_id, call.message.chat.id, user_data['links'])
                 create_reply_keyboard_panel(
                     telegram_user_id in TelegramBot.admin_users,
                     TelegramBot.bot, 
