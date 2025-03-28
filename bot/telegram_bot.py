@@ -12,14 +12,19 @@ import os
 
 
 class TelegramBot():
+    print("+++TELEGRAM BOT+++")
     bot = TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
     admin_users = os.getenv('ADMIN_USERS').split(',')
     admin_user_broadcasts = set()
 
     def check_if_needs_update(func):
+        print("Execuitng check_if_needs_update")
         def inner(obj): 
             try:
-                user, _ =  UserRepository.get_user(retrieve_username(obj.from_user)) 
+                print("line 22")
+                user, _ =  UserRepository.get_user(retrieve_username(obj.from_user))
+                print("line 24")
+                print("User", user) 
                 if user is not None and user.is_updated:
                     return func(obj)
                 else: 
@@ -68,6 +73,7 @@ class TelegramBot():
     @bot.callback_query_handler(func=lambda call: call.data in ['update'])
     def update(call):
         telegram_user_id = retrieve_username(call.from_user)
+        print("UPDATE")
         UserRepository.mark_user_as_updated(telegram_user_id)
         create_reply_keyboard_panel(
             telegram_user_id in TelegramBot.admin_users,
@@ -115,16 +121,27 @@ class TelegramBot():
     @empty_admin_user_broadcasts
     @check_if_needs_update
     def configurations_callback_query(call):
+        print("EXECUTING configurations_callback_query")
         try:
             telegram_user_id = retrieve_username(call.from_user)
+            print("Line 120")
             configs = UserRepository.get_user_configurations(telegram_user_id)
+            print("Config len", len(configs))
             if len(configs) > 0: 
                 TelegramBot.bot.send_message(call.message.chat.id, messages_content['configs_exist'])
             else:
+                print("Line 125")
                 user_data, status_code, access_token = MarzbanService.create_marzaban_user(telegram_user_id)
 
-                if status_code == 409: 
+                if status_code == 200: # marzban get api will execute only one time after user creation
                     user_data, status_code = MarzbanService.get_marzaban_user(telegram_user_id, access_token)
+
+                if status_code == 409: 
+                    logger.warning(f"Got 409 for user {telegram_user_id}. Falling back to DB.")
+                    # Fallback: get links from configurations table
+                    configurations = UserRepository.get_user_configurations(telegram_user_id)
+                    links = [config.vless_link for config in configurations]
+                    user_data = {links: links}
 
                 if status_code > 299: 
                     raise Exception("Failed API Call")
@@ -148,6 +165,7 @@ class TelegramBot():
     @empty_admin_user_broadcasts
     @check_if_needs_update
     def get_configurations(message):
+        print("EXECUTING GET CONFIGURATIONS")
         try:
             telegram_user_id = retrieve_username(message.from_user)
             configurations = UserRepository.get_user_configurations(telegram_user_id)
@@ -165,6 +183,7 @@ class TelegramBot():
     @bot.message_handler(func=lambda message: message.text == button_content["Broadcast"])
     @check_if_needs_update
     def Broadcast(message):
+        print("EXECUTING BROADCAST")
         try:
             telegram_user_id = retrieve_username(message.from_user)
             if telegram_user_id in TelegramBot.admin_users: 
@@ -180,6 +199,7 @@ class TelegramBot():
     @empty_admin_user_broadcasts
     @check_if_needs_update
     def get_manuals(message):
+        print("EXECUTING GET MANUALS")
         try:
             manuals = messages_content['manuals'].format(link=os.getenv("MANUALS_LINK"), support=os.getenv("SUPPORT_TG"))
             TelegramBot.bot.send_message(message.chat.id, manuals, parse_mode='HTML')
@@ -192,7 +212,8 @@ class TelegramBot():
     @bot.callback_query_handler(func = lambda call: call.message.text == messages_content['configs_panel'])
     @empty_admin_user_broadcasts
     @check_if_needs_update
-    def return_link_callback_query(call): 
+    def return_link_callback_query(call):
+        print("EXECUTING return_link_callback_query") 
         try:
             telegram_user_id = retrieve_username(call.from_user)
             configurations = UserRepository.get_user_configurations(telegram_user_id)
@@ -210,6 +231,7 @@ class TelegramBot():
     @bot.message_handler(func=lambda message: True)
     @check_if_needs_update
     def default_message(message):
+        print("ECXECUTING DEFAULT MESSAGE")
         telegram_user_id = retrieve_username(message.from_user)
         if telegram_user_id in TelegramBot.admin_users and telegram_user_id in TelegramBot.admin_user_broadcasts:
             users = UserRepository.get_users()

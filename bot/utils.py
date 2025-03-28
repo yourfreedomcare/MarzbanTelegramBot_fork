@@ -76,6 +76,7 @@ def prepare_links_dictionary_rework(configurations):
     end_idx = "%5D"
     parsed_data_dict = {}
     for config in configurations: 
+        print("config.vless_link", config.vless_link)
         spx_value = re.search(r'sid=#([^&]+)', config.vless_link).group(1)
         print(spx_value)
         idx1 = spx_value.index(start_idx)
@@ -92,5 +93,6 @@ def refresh_configs():
     access_token = MarzbanService.access_token()
     UserRepository.refresh_configs(access_token)
 
-def retrieve_username(user): 
+def retrieve_username(user):
+    print("retrieve_username: ", user) 
     return str(user.id)
