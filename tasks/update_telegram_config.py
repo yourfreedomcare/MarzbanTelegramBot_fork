@@ -1,9 +1,12 @@
 import os
 import requests
 import datetime
+import sqlite3
 from time import sleep
 from sqlalchemy.sql import text
-from database.base import Session  # ✅ Importing existing DB session instance
+from database.base import Session, engine  # ✅ Importing existing DB session instance
+import mysql.connector
+
 
 # 🔹 Marzban API Configuration
 MARZBAN_API_HOST = os.getenv("MARZBAN_API_HOST")
@@ -116,9 +119,80 @@ def update_telegram_config():
         session.close()  # ✅ Ensure session is properly closed
 
 
+
+def fetch_marzban_hosts():
+
+    # Path to your SQLite database
+    db_path = 'marzban_db.sqlite3'
+
+    # Create a connection to the SQLite database
+    conn = sqlite3.connect(db_path)
+
+    # Create a cursor object to interact with the database
+    cursor = conn.cursor()
+
+    # Query to fetch all rows from the 'hosts' table
+    cursor.execute("SELECT * FROM hosts")
+
+    # Fetch all rows from the result of the query
+    return cursor.fetchall()
+
+
 if __name__ == "__main__":
+
+    # Execute query in the mysql DB to check all hosts records.
+
+#    with engine.connect() as connection:
+#        tg_bot_hosts = connection.execute(text("SELECT * FROM hosts"))  # Replace with your actual query/table
+
+    insert_query = """
+        INSERT INTO hosts (
+            id, remark, address, port, inbound_tag, sni, host, security, alpn, fingerprint,
+            allowinsecure, is_disabled, path, mux_enable, fragment_setting, random_user_agent,
+            noise_setting, use_sni_as_host
+        ) VALUES (
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+        )
+    """
+
+    print("BEGINS WITH THE SCRIPT")
+
     while True:
-        print("⏳ Updating Telegram Configurations...")
-        update_telegram_config()
-        print("✅ Update Complete. Sleeping for 1 minute...")
-        sleep(60)  # 🔄 1 Minute Delay
+
+        marzban_hosts = fetch_marzban_hosts()
+
+        connection = mysql.connector.connect(
+            host="mysql",
+            user="marzuser",
+            password="marzpassword",
+            database="marzban",
+        )
+        cursor = connection.cursor()
+
+        sleep(20)
+
+        cursor.execute("SELECT * FROM hosts")
+        telegram_existing_hosts = cursor.fetchall()
+
+        if marzban_hosts != telegram_existing_hosts:
+            print(f"\n\n\nDELETING PREVIOUS HOSTS FROM TELE_BOT", flush=True)
+            cursor.execute("Delete from hosts")
+            print(f"HOSTS DELETED\n\n", flush=True)
+
+            for host in marzban_hosts:
+                cursor.execute(insert_query, host)
+                print(f"HOST ADDED: {host}", flush=True)
+
+            connection.commit()
+
+            print("⏳ Updating Telegram Configurations...")
+            update_telegram_config()
+            print("✅ Update Complete. Sleeping for 1 minute...")
+            print("CHANGES COMMITTED ✅\n\n\n", flush=True)
+
+        else:
+            print("\n\n\n✅ No changes detected.", flush=True)
+            print(marzban_hosts)
+            print(telegram_existing_hosts)
+            print("\n\n\n✅ No changes detected.", flush=True)
+
