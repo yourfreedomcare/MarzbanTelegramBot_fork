@@ -123,7 +123,7 @@ def update_telegram_config():
 def fetch_marzban_hosts():
 
     # Path to your SQLite database
-    db_path = 'marzban_db.sqlite3'
+    db_path = 'db/marzban_db.sqlite3'
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect(db_path)
