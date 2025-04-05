@@ -18,7 +18,7 @@ ACCESS_TOKEN = None
 
 
 def get_access_token():
-    """🔐 Fetch a new access token and store it globally"""
+    """🔐 Fetch a new access token and store it globally """
     global ACCESS_TOKEN
     url = f"{MARZBAN_API_HOST}/api/admin/token"
     data = {
