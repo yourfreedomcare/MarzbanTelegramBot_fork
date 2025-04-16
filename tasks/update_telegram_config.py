@@ -5,6 +5,8 @@ import sqlite3
 from time import sleep
 from sqlalchemy.sql import text
 from database.base import Session, engine
+from logger import logger
+
 
 
 MARZBAN_API_HOST = os.getenv("MARZBAN_API_HOST")
@@ -178,5 +180,5 @@ if __name__ == "__main__":
     print("🚀 Sync script started...")
     while True:
         sync_hosts()
-        print("💤 Sleeping 20s...\n")
+        logger.info("Sleeping for 20 seconds before next sync...")
         sleep(20)
