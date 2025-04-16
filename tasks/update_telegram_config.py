@@ -135,7 +135,12 @@ def fetch_marzban_hosts():
     cursor.execute("SELECT * FROM hosts")
 
     # Fetch all rows from the result of the query
-    return cursor.fetchall()
+    data = cursor.fetchall()
+
+    # Close the cursor and connection
+    cursor.close()
+
+    return data
 
 
 if __name__ == "__main__":
@@ -195,4 +200,4 @@ if __name__ == "__main__":
             print(marzban_hosts)
             print(telegram_existing_hosts)
             print("\n\n\n✅ No changes detected.", flush=True)
-
+        connection.close()
