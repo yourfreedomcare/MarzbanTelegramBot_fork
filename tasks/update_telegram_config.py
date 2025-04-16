@@ -4,21 +4,18 @@ import datetime
 import sqlite3
 from time import sleep
 from sqlalchemy.sql import text
-from database.base import Session, engine  # ✅ Importing existing DB session instance
-import mysql.connector
+from database.base import Session, engine
+from dotenv import load_dotenv
 
+load_dotenv()
 
-# 🔹 Marzban API Configuration
 MARZBAN_API_HOST = os.getenv("MARZBAN_API_HOST")
 MARZBAN_ADMIN_USERNAME = os.getenv("MARZBAN_ADMIN_USERNAME")
 MARZBAN_ADMIN_PASSWORD = os.getenv("MARZBAN_ADMIN_PASSWORD")
 
-# 🔹 Global Token Storage
 ACCESS_TOKEN = None
 
-
 def get_access_token():
-    """🔐 Fetch a new access token and store it globally """
     global ACCESS_TOKEN
     url = f"{MARZBAN_API_HOST}/api/admin/token"
     data = {
@@ -27,74 +24,68 @@ def get_access_token():
         "grant_type": "password"
     }
     response = requests.post(url, data=data)
-
     if response.status_code == 200:
         ACCESS_TOKEN = response.json().get("access_token")
-        print("✅ New Token Acquired and Stored Globally")
+        print("✅ Token Acquired")
         return ACCESS_TOKEN
-    else:
-        print(f"❌ Token Fetch Failed: {response.text}")
-        return None
-
+    print(f"❌ Token Error: {response.text}")
+    return None
 
 def fetch_marzban_users():
-    """📡 Fetch users, handling token expiration"""
     global ACCESS_TOKEN
-
     if not ACCESS_TOKEN:
         ACCESS_TOKEN = get_access_token()
         if not ACCESS_TOKEN:
-            print("❌ Failed to get token, skipping API call")
             return None
-
     url = f"{MARZBAN_API_HOST}/api/users"
     headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
     response = requests.get(url, headers=headers)
 
     if response.status_code == 200:
         return response.json()["users"]
-    elif response.status_code == 401:  # 🔄 Token Expired
-        print("🔄 Token Expired, Fetching New Token...")
-        ACCESS_TOKEN = get_access_token()  # Store new token globally
-        if not ACCESS_TOKEN:
-            return None  # ❌ Token lene mein masla aya
-        return fetch_marzban_users()  # 🔄 Retry with new token
+    elif response.status_code == 401:
+        print("🔄 Token expired, retrying...")
+        ACCESS_TOKEN = get_access_token()
+        return fetch_marzban_users()
     else:
-        print(f"❌ API Request Failed: {response.text}")
+        print(f"❌ API Error: {response.text}")
         return None
 
+def fetch_marzban_hosts():
+    conn = sqlite3.connect('db/marzban_db.sqlite3')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM hosts")
+    data = cursor.fetchall()
+    conn.close()
+    return data
 
 def update_telegram_config():
-    """🔄 Update database: Delete old & insert new links"""
     users = fetch_marzban_users()
     if not users:
-        print("⚠️ No users found, skipping update.")
+        print("⚠️ No users found.")
         return
 
-    session = Session()  # ✅ Using existing DB instance from base.py
+    session = Session()
     try:
         for user in users:
-            telegram_id = user["username"]  # 🔑 Assuming username = Telegram ID
+            telegram_id = user["username"]
             vless_links = user.get("links", [])
-            current_time = datetime.datetime.now()  # ✅ Get current timestamp
+            current_time = datetime.datetime.now()
 
-            # ✅ Check if user exists in telegram_users
             user_exists = session.execute(
                 text("SELECT COUNT(*) FROM telegram_users WHERE telegram_user_id = :telegram_id"),
                 {"telegram_id": telegram_id}
             ).scalar()
 
             if not user_exists:
-                print(f"⚠️ Skipping {telegram_id}, user does not exist in telegram_users")
-                continue  # 🔄 Skip this user
+                print(f"⚠️ Skipping {telegram_id} (not found in telegram_users)")
+                continue
 
-            # 🛑 Delete old links
             session.execute(
                 text("DELETE FROM telegram_users_configurations WHERE telegram_user_id = :telegram_id"),
                 {"telegram_id": telegram_id}
             )
 
-            # ✅ Insert new links with timestamps
             for vless_link in vless_links:
                 session.execute(
                     text("""
@@ -111,93 +102,83 @@ def update_telegram_config():
                 )
 
         session.commit()
-        print(f"✅ Updated {len(users)} users in telegram_users_configurations")
+        print(f"✅ Updated Telegram config for {len(users)} users")
     except Exception as e:
         session.rollback()
-        print(f"❌ Error updating database: {e}")
+        print(f"❌ DB Update Error: {e}")
     finally:
-        session.close()  # ✅ Ensure session is properly closed
+        session.close()
 
-
-
-def fetch_marzban_hosts():
-
-    # Path to your SQLite database
-    db_path = 'db/marzban_db.sqlite3'
-
-    # Create a connection to the SQLite database
-    conn = sqlite3.connect(db_path)
-
-    # Create a cursor object to interact with the database
-    cursor = conn.cursor()
-
-    # Query to fetch all rows from the 'hosts' table
-    cursor.execute("SELECT * FROM hosts")
-
-    # Fetch all rows from the result of the query
-    data = cursor.fetchall()
-
-    # Close the cursor and connection
-    cursor.close()
-
-    return data
-
-
-if __name__ == "__main__":
-
-    # Execute query in the mysql DB to check all hosts records.
-
-#    with engine.connect() as connection:
-#        tg_bot_hosts = connection.execute(text("SELECT * FROM hosts"))  # Replace with your actual query/table
-
-    insert_query = """
-        INSERT INTO hosts (
-            id, remark, address, port, inbound_tag, sni, host, security, alpn, fingerprint,
-            allowinsecure, is_disabled, path, mux_enable, fragment_setting, random_user_agent,
-            noise_setting, use_sni_as_host
-        ) VALUES (
-            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-        )
+def compare_selected_columns(list1, list2, column_indexes):
     """
+    Compares selected columns from two lists of tuples.
+    
+    Args:
+        list1 (list): First list of tuples (e.g., rows from DB1).
+        list2 (list): Second list of tuples (e.g., rows from DB2).
+        column_indexes (list): Indexes of columns to compare, e.g., [1] or [1, 2].
 
-    print("BEGINS WITH THE SCRIPT")
+    Returns:
+        bool: True if selected columns are equal, False otherwise.
+    """
+    def extract_columns(rows):
+        return sorted([tuple(row[i] for i in column_indexes) for row in rows])
 
-    while True:
+    return extract_columns(list1) == extract_columns(list2)
 
-        marzban_hosts = fetch_marzban_hosts()
+def sync_hosts():
+    print("🔄 Sync started")
 
-        connection = mysql.connector.connect(
-            host="mysql",
-            user="marzuser",
-            password="marzpassword",
-            database="marzban",
-        )
-        cursor = connection.cursor()
+    marzban_hosts = fetch_marzban_hosts()
+    session = Session()
+    try:
+        db_hosts = session.execute(text("SELECT * FROM hosts")).fetchall()
+        db_hosts = [tuple(row) for row in db_hosts]
 
-        sleep(20)
+        # Compare by 'remark' only (column index 1)
+        if not compare_selected_columns(marzban_hosts, db_hosts, [1]):
+            print("🗑️ Deleting old hosts...")
+            session.execute(text("DELETE FROM hosts"))
 
-        cursor.execute("SELECT * FROM hosts")
-        telegram_existing_hosts = cursor.fetchall()
-
-        if marzban_hosts != telegram_existing_hosts:
-            print(f"\n\n\nDELETING PREVIOUS HOSTS FROM TELE_BOT", flush=True)
-            cursor.execute("Delete from hosts")
-            print(f"HOSTS DELETED\n\n", flush=True)
+            insert_query = text("""
+                INSERT INTO hosts (
+                    id, remark, address, port, inbound_tag, sni, host, security, alpn,
+                    fingerprint, allowinsecure, is_disabled, path, mux_enable,
+                    fragment_setting, random_user_agent, noise_setting, use_sni_as_host
+                ) VALUES (
+                    :id, :remark, :address, :port, :inbound_tag, :sni, :host, :security, :alpn,
+                    :fingerprint, :allowinsecure, :is_disabled, :path, :mux_enable,
+                    :fragment_setting, :random_user_agent, :noise_setting, :use_sni_as_host
+                )
+            """)
 
             for host in marzban_hosts:
-                cursor.execute(insert_query, host)
-                print(f"HOST ADDED: {host}", flush=True)
+                host_dict = {
+                    "id": host[0], "remark": host[1], "address": host[2], "port": host[3],
+                    "inbound_tag": host[4], "sni": host[5], "host": host[6], "security": host[7],
+                    "alpn": host[8], "fingerprint": host[9], "allowinsecure": host[10],
+                    "is_disabled": host[11], "path": host[12], "mux_enable": host[13],
+                    "fragment_setting": host[14], "random_user_agent": host[15],
+                    "noise_setting": host[16], "use_sni_as_host": host[17]
+                }
+                session.execute(insert_query, host_dict)
+                print(f"➕ Host inserted: {host_dict['remark']}")
 
-            connection.commit()
-
-            print("⏳ Updating Telegram Configurations...")
+            session.commit()
+            print("✅ Hosts updated in database.")
+            print("⏳ Updating Telegram configurations...")
             update_telegram_config()
-            print("✅ Update Complete. Sleeping for 1 minute...")
-            print("CHANGES COMMITTED ✅\n\n\n", flush=True)
-
         else:
-            print("\n\n\n✅ No changes detected.", flush=True)
-            print(marzban_hosts)
-            print(telegram_existing_hosts)
-            print("\n\n\n✅ No changes detected.", flush=True)
-        connection.close()
+            print("✅ No changes in host data.")
+    except Exception as e:
+        session.rollback()
+        print(f"❌ Host Sync Error: {e}")
+    finally:
+        session.close()
+
+if __name__ == "__main__":
+    print("🚀 Sync script started...")
+    while True:
+        sync_hosts()
+        print("💤 Sleeping 20s...\n")
+        sleep(20)
