@@ -5,9 +5,7 @@ import sqlite3
 from time import sleep
 from sqlalchemy.sql import text
 from database.base import Session, engine
-from dotenv import load_dotenv
 
-load_dotenv()
 
 MARZBAN_API_HOST = os.getenv("MARZBAN_API_HOST")
 MARZBAN_ADMIN_USERNAME = os.getenv("MARZBAN_ADMIN_USERNAME")
