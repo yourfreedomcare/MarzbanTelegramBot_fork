@@ -9,6 +9,8 @@ from .utils import *
 from database.user import UserRepository
 from marzban_api.marzban_service import MarzbanService
 import os
+import time
+
 
 
 class TelegramBot():
@@ -248,4 +250,11 @@ class TelegramBot():
             TelegramBot.bot.send_message(message.chat.id, messages_content['default_fallback'])
 
     def start_bot(self):
-        TelegramBot.bot.polling() 
+        while True:
+            try:
+                logger.info("Starting bot polling...")
+                TelegramBot.bot.polling(none_stop=True, timeout=60)
+            except Exception as e:
+                logger.error("Bot crashed with exception:", exc_info=True)
+                logger.info("Restarting bot polling in 10 seconds...")
+                time.sleep(10) 
