@@ -24,6 +24,7 @@ def show_create_configurations_message(bot, message, content):
     bot.send_message(message.chat.id, content
                      , reply_markup=keyboard)
     
+
 def bytes_to_gb(bytes_value):
     return round(bytes_value / (1024 ** 3), 2)
 
@@ -47,25 +48,13 @@ def fetch_marzban_user_data(username):
 def prepare_configs_panel(bot, chatId, configurations): 
     links_dict = prepare_links_dictionary_rework(configurations)
 
-    marzban_username = configurations[0].telegram_user_id
-    status, used_traffic, data_limit = fetch_marzban_user_data(marzban_username)
-
-    data_left_gb = max(0, bytes_to_gb(data_limit - used_traffic))
-
-    # Base message from config + add status line
-    base_message = messages_content['configs_panel']
-    status_line = f"Data Left: {data_left_gb} GB - {status.upper()}"
-    full_message = f"{base_message}\n{status_line}"
-
     # Build buttons
     keyboard = types.InlineKeyboardMarkup()
     for link in links_dict: 
         button = types.InlineKeyboardButton(link, callback_data=link)
         keyboard.row(button)
-
-    # Send message
-    bot.send_message(chatId, full_message, reply_markup=keyboard)
-
+        
+    bot.send_message(chatId, messages_content['configs_panel'], reply_markup=keyboard)
 
 def create_reply_keyboard_panel(isAdmin, bot, chatId, txtMessage):
     keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
@@ -109,17 +98,23 @@ def prepare_links_dictionary_rework(configurations):
     start_idx = "%5B"
     end_idx = "%5D"
     parsed_data_dict = {}
+
+    # Iterate through the configurations and extract the desired data
     for config in configurations: 
         spx_value = re.search(r'sid=#([^&]+)', config.vless_link).group(1)
         print(spx_value)
-        idx1 = spx_value.index(start_idx)
-        idx2 = spx_value.index(end_idx)
 
-        config_title = spx_value[idx1+ len(start_idx) : idx2 ]
-        print(config_title)
+        try:
+            idx1 = spx_value.index(start_idx)
+            idx2 = spx_value.index(end_idx)
+            config_title = spx_value[idx1 + len(start_idx): idx2]
+            decoded_title = urllib.parse.unquote(urllib.parse.unquote_plus(config_title))
+        except ValueError:
+            decoded_title = "Unknown"
 
-        parsed_data_dict[urllib.parse.unquote(urllib.parse.unquote_plus(config_title))] = config.vless_link
-    
+        parsed_data_dict[decoded_title] = config.vless_link
+
+    print("parsed_data_dict", parsed_data_dict)
     return parsed_data_dict
 
 def refresh_configs():
