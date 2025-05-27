@@ -235,6 +235,47 @@ class TelegramBot():
             logger.error(f"Exception -> return_link_callback_query:", exc_info=True)
             TelegramBot.bot.send_message(call.message.chat.id, messages_content['unexpected_error'])
 
+
+    @bot.message_handler(func=lambda message: message.text == button_content['Donate'])
+    def handle_donate(message):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton("💰 Crypto", callback_data='donate_crypto'))
+        keyboard.add(types.InlineKeyboardButton("⭐ TG Stars", callback_data='donate_tgstars'))
+        TelegramBot.bot.send_message(message.chat.id, "Choose donation option:", reply_markup=keyboard)
+
+    @bot.callback_query_handler(func=lambda call: call.data == 'donate_crypto')
+    def handle_donate_crypto(call):
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton("Bitcoin", callback_data='donate_coin_btc'))
+        keyboard.add(types.InlineKeyboardButton("Litecoin", callback_data='donate_coin_ltc'))
+        keyboard.add(types.InlineKeyboardButton("USDT (ERC-20)", callback_data='donate_coin_usdt_erc'))
+        keyboard.add(types.InlineKeyboardButton("USDT (TRC-20)", callback_data='donate_coin_usdt_trc'))
+        TelegramBot.bot.send_message(call.message.chat.id, "Choose network and coin:", reply_markup=keyboard)
+
+    # Unified crypto handler
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("donate_coin_"))
+    def handle_crypto_donation(call):
+        coin_key = call.data.replace("donate_coin_", "")
+        coin_info = get_crypto_address_info(coin_key)
+
+        if coin_info and coin_info['address']:
+            message = (
+                f"*{coin_info['network']} Address:*\n"
+                f"`{coin_info['address']}`\n\n"
+                "📋 Tap and hold to copy."
+            )
+            TelegramBot.bot.send_message(call.message.chat.id, message, parse_mode="Markdown")
+        else:
+            TelegramBot.bot.send_message(call.message.chat.id, "❌ Address not configured. Please contact support.")
+
+    @bot.callback_query_handler(func=lambda call: call.data == 'donate_tgstars')
+    def handle_donate_tgstars(call):
+        TelegramBot.bot.send_message(
+            call.message.chat.id,
+            "You chose ⭐ *TG Stars*.\nPlease send stars via Telegram premium gifting.",
+            parse_mode='Markdown'
+        )
+
     # Default fallback for any unrecognized message 
     @bot.message_handler(func=lambda message: True)
     @check_if_needs_update

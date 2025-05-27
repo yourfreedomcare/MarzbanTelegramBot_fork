@@ -2,6 +2,8 @@
 Utils file include all the helper functions user by the 
 bot class
 '''
+
+import os
 from telebot import types
 import urllib.parse
 from marzban_api.marzban_service import MarzbanService
@@ -9,6 +11,17 @@ from database.user import UserRepository
 import re, json
 import sqlite3
 
+
+
+CRYPTO_ADDRESSES = {
+    'btc': {'network': 'Bitcoin', 'address': os.getenv("BTC_ADDRESS")},
+    'ltc': {'network': 'Litecoin', 'address': os.getenv("LTC_ADDRESS")},
+    'usdt_erc': {'network': 'USDT (ERC-20)', 'address': os.getenv("USDT_ERC_ADDRESS")},
+    'usdt_trc': {'network': 'USDT (TRC-20)', 'address': os.getenv("USDT_TRC_ADDRESS")},
+}
+
+def get_crypto_address_info(coin_key):
+    return CRYPTO_ADDRESSES.get(coin_key)
 
 with open('message_content.json', 'r') as file:
     messages_content = json.load(file)
@@ -65,10 +78,11 @@ def create_reply_keyboard_panel(isAdmin, bot, chatId, txtMessage):
     forceUpdate = types.KeyboardButton(button_content['Force Update'])
     refreshConfigs = types.KeyboardButton(button_content['Refresh Configs'])
     broadcast = types.KeyboardButton(button_content['Broadcast'])
+    donate = types.KeyboardButton(button_content['Donate'])
 
 
     # Add buttons to the keyboard
-    keyboard.add(getConfigs, getManuals)
+    keyboard.add(getConfigs, getManuals, donate)
     if isAdmin: 
         keyboard.add(forceUpdate, refreshConfigs, broadcast)
 
