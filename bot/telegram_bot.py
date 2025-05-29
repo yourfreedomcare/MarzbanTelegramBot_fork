@@ -262,7 +262,6 @@ class TelegramBot():
             message = (
                 f"*{coin_info['network']} Address:*\n"
                 f"`{coin_info['address']}`\n\n"
-                "📋 Tap and hold to copy."
             )
             TelegramBot.bot.send_message(call.message.chat.id, message, parse_mode="Markdown")
         else:
