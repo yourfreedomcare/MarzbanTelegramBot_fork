@@ -1,14 +1,12 @@
 import os
 import requests
 import datetime
-import sqlite3
 from time import sleep
 from sqlalchemy.sql import text
-from database.base import Session, engine
+from database.base import BotSession as Session, MarzbanSession
 from logger import logger
 
-
-
+# Load environment variables
 MARZBAN_API_HOST = os.getenv("MARZBAN_API_HOST")
 MARZBAN_ADMIN_USERNAME = os.getenv("MARZBAN_ADMIN_USERNAME")
 MARZBAN_ADMIN_PASSWORD = os.getenv("MARZBAN_ADMIN_PASSWORD")
@@ -52,12 +50,15 @@ def fetch_marzban_users():
         return None
 
 def fetch_marzban_hosts():
-    conn = sqlite3.connect('db/marzban_db.sqlite3')
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM hosts")
-    data = cursor.fetchall()
-    conn.close()
-    return data
+    session = MarzbanSession()
+    try:
+        result = session.execute(text("SELECT * FROM hosts"))
+        return result.fetchall()
+    except Exception as e:
+        print(f"Error fetching hosts from Marzban DB: {e}")
+        return []
+    finally:
+        session.close()
 
 def update_telegram_config():
     users = fetch_marzban_users()
@@ -105,25 +106,13 @@ def update_telegram_config():
         print(f"✅ Updated Telegram config for {len(users)} users")
     except Exception as e:
         session.rollback()
-        print(f"❌ DB Update Error: {e}")
+        print(f"DB Update Error: {e}")
     finally:
         session.close()
 
 def compare_selected_columns(list1, list2, column_indexes):
-    """
-    Compares selected columns from two lists of tuples.
-    
-    Args:
-        list1 (list): First list of tuples (e.g., rows from DB1).
-        list2 (list): Second list of tuples (e.g., rows from DB2).
-        column_indexes (list): Indexes of columns to compare, e.g., [1] or [1, 2].
-
-    Returns:
-        bool: True if selected columns are equal, False otherwise.
-    """
     def extract_columns(rows):
         return sorted([tuple(row[i] for i in column_indexes) for row in rows])
-
     return extract_columns(list1) == extract_columns(list2)
 
 def sync_hosts():
