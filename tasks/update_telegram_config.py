@@ -2,7 +2,7 @@ import os
 import requests
 import datetime
 from time import sleep
-from sqlalchemy.sql import text
+from sqlalchemy import text
 from database.base import BotSession as Session, MarzbanSession
 from logger import logger
 
@@ -116,7 +116,7 @@ def compare_selected_columns(list1, list2, column_indexes):
     return extract_columns(list1) == extract_columns(list2)
 
 def sync_hosts():
-    print("🔄 Sync started")
+    print("Sync started")
 
     marzban_hosts = fetch_marzban_hosts()
     session = Session()
@@ -126,7 +126,7 @@ def sync_hosts():
 
         # Compare by 'remark' only (column index 1)
         if not compare_selected_columns(marzban_hosts, db_hosts, [1]):
-            print("🗑️ Deleting old hosts...")
+            print("Deleting old hosts...")
             session.execute(text("DELETE FROM hosts"))
 
             insert_query = text("""
@@ -151,22 +151,22 @@ def sync_hosts():
                     "noise_setting": host[16], "use_sni_as_host": host[17]
                 }
                 session.execute(insert_query, host_dict)
-                print(f"➕ Host inserted: {host_dict['remark']}")
+                print(f"Host inserted: {host_dict['remark']}")
 
             session.commit()
-            print("✅ Hosts updated in database.")
-            print("⏳ Updating Telegram configurations...")
+            print("Hosts updated in database.")
+            print("Updating Telegram configurations...")
             update_telegram_config()
         else:
-            print("✅ No changes in host data.")
+            print("No changes in host data.")
     except Exception as e:
         session.rollback()
-        print(f"❌ Host Sync Error: {e}")
+        print(f"Host Sync Error: {e}")
     finally:
         session.close()
 
 if __name__ == "__main__":
-    print("🚀 Sync script started...")
+    print("Sync script started...")
     while True:
         sync_hosts()
         logger.info("Sleeping for 20 seconds before next sync...")

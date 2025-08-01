@@ -10,6 +10,8 @@ from database.user import UserRepository
 from database.base import MarzbanSession
 import re
 import json
+from sqlalchemy import text
+from logger import logger
 
 CRYPTO_ADDRESSES = {
     'btc': {'network': 'Bitcoin', 'address': os.getenv("BTC_ADDRESS")},
@@ -40,7 +42,7 @@ def fetch_marzban_user_data(username):
     session = MarzbanSession()
     try:
         result = session.execute(
-            "SELECT status, used_traffic, data_limit FROM users WHERE username = :username",
+            text("SELECT status, used_traffic, data_limit FROM users WHERE username = :username"),
             {"username": username}
         ).fetchone()
 
@@ -51,7 +53,7 @@ def fetch_marzban_user_data(username):
             return status, used_traffic, data_limit
         return "UNKNOWN", 0, 0
     except Exception as e:
-        print(f"❌ Marzban DB Error: {e}")
+        logger.info(f"Marzban DB Error: {e}")
         return "ERROR", 0, 0
     finally:
         session.close()
@@ -62,6 +64,7 @@ def prepare_configs_panel(bot, chatId, configurations):
     for link in links_dict: 
         button = types.InlineKeyboardButton(link, callback_data=link)
         keyboard.row(button)
+        logger.info(f"Adding button for link: {link}")
     bot.send_message(chatId, messages_content['configs_panel'], reply_markup=keyboard)
 
 def create_reply_keyboard_panel(isAdmin, bot, chatId, txtMessage):
@@ -103,8 +106,9 @@ def prepare_links_dictionary_rework(configurations):
     parsed_data_dict = {}
 
     for config in configurations: 
+        logger.info(f"Preparing Vless Link: {config.vless_link}")
         spx_value = re.search(r'sid=#([^&]+)', config.vless_link).group(1)
-        print(spx_value)
+        logger.info(spx_value)
 
         try:
             idx1 = spx_value.index(start_idx)
@@ -116,7 +120,7 @@ def prepare_links_dictionary_rework(configurations):
 
         parsed_data_dict[decoded_title] = config.vless_link
 
-    print("parsed_data_dict", parsed_data_dict)
+    logger.info(f"parsed_data_dict: {parsed_data_dict}")
     return parsed_data_dict
 
 def refresh_configs():
@@ -124,5 +128,5 @@ def refresh_configs():
     UserRepository.refresh_configs(access_token)
 
 def retrieve_username(user):
-    print("retrieve_username: ", user) 
+    logger.info(f"retrieve_username: {user}") 
     return str(user.id)

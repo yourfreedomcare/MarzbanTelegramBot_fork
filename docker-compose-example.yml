@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   mysql:
     image: mysql:latest
@@ -5,7 +7,7 @@ services:
     env_file: .env
     network_mode: host
     volumes:
-      - ./container_data:/var/lib/mysql
+      - bot_mysql_data:/var/lib/mysql
     command:
       - --port=3307
       - --bind-address=127.0.0.1
@@ -21,9 +23,11 @@ services:
     network_mode: host
     volumes:
       - .:/usr/src/app
-      - /var/lib/marzban/db.sqlite3:/usr/src/app/db/marzban_db.sqlite3
     depends_on: 
       mysql:
         condition: service_healthy
     env_file:
       - .env
+
+volumes:
+  bot_mysql_data:
