@@ -1,12 +1,18 @@
+version: '3.8'
+
 services:
   mysql:
     image: mysql:latest
     restart: always
     env_file: .env
+    network_mode: host
     volumes:
-      - ./container_data:/var/lib/mysql
+      - bot_mysql_data:/var/lib/mysql
+    command:
+      - --port=3307
+      - --bind-address=127.0.0.1
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "0.0.0.0"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-P", "3307"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -14,6 +20,7 @@ services:
   tg_bot:
     build: .
     restart: always
+    network_mode: host
     volumes:
       - .:/usr/src/app
     depends_on: 
@@ -21,3 +28,6 @@ services:
         condition: service_healthy
     env_file:
       - .env
+
+volumes:
+  bot_mysql_data:
