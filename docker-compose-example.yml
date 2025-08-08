@@ -1,33 +1,44 @@
 version: '3.8'
 
 services:
-  mysql:
+  mysql_bot:
     image: mysql:latest
+    container_name: mysql_bot
     restart: always
     env_file: .env
-    network_mode: host
     volumes:
       - bot_mysql_data:/var/lib/mysql
+    networks:
+      - default
+      - marzban_network
     command:
-      - --port=3307
-      - --bind-address=127.0.0.1
+      - --port=3306
+      - --bind-address=0.0.0.0
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-P", "3307"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-P", "3306"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
 
   tg_bot:
     build: .
+    container_name: tg_bot
     restart: always
-    network_mode: host
     volumes:
       - .:/usr/src/app
-    depends_on: 
-      mysql:
+    depends_on:
+      mysql_bot:
         condition: service_healthy
     env_file:
       - .env
+    networks:
+      - default
+      - marzban_network
 
 volumes:
   bot_mysql_data:
+
+networks:
+  marzban_network:
+    external: true
+    name: marzban-panel_default
