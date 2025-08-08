@@ -21,7 +21,7 @@ def get_access_token():
         "password": MARZBAN_ADMIN_PASSWORD,
         "grant_type": "password"
     }
-    response = requests.post(url, data=data)
+    response = requests.post(url, data=data, verify=False)
     if response.status_code == 200:
         ACCESS_TOKEN = response.json().get("access_token")
         print("✅ Token Acquired")
@@ -37,7 +37,7 @@ def fetch_marzban_users():
             return None
     url = f"{MARZBAN_API_HOST}/api/users"
     headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, verify=False)
 
     if response.status_code == 200:
         return response.json()["users"]
