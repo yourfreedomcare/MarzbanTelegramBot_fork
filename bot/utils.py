@@ -58,34 +58,17 @@ def create_needs_update_message(bot, chat_id):
     keyboard.add(button)
     bot.send_message(chat_id, messages_content['update'], reply_markup=keyboard)
 
-@DeprecationWarning
-def prepare_links_dictionary(configurations):
-    pattern = r'%5B([^%]+)%5D'
+def prepare_links_dictionary_rework(configurations):
     parsed_data_dict = {}
     for config in configurations:
-        if 'vless' in config.vless_link: 
-            match = re.search(pattern, config.vless_link)
-            if match:
-                parsed_data = match.group(1)
-                parsed_data_dict[parsed_data] = config.vless_link
+        match = re.search(r'#%5B(.*?)%5D', config.vless_link)
+        if match:
+            encoded_config_title = match.group(1)
+            config_title = urllib.parse.unquote(urllib.parse.unquote_plus(encoded_config_title))
+            parsed_data_dict[config_title] = config.vless_link
+        else:
+            print(f"Cant find data in link: {config.vless_link}")
 
-    return parsed_data_dict
-
-def prepare_links_dictionary_rework(configurations):
-    start_idx = "%5B"
-    end_idx = "%5D"
-    parsed_data_dict = {}
-    for config in configurations: 
-        spx_value = re.search(r'sid=#([^&]+)', config.vless_link).group(1)
-        print(spx_value)
-        idx1 = spx_value.index(start_idx)
-        idx2 = spx_value.index(end_idx)
-
-        config_title = spx_value[idx1+ len(start_idx) : idx2 ]
-        print(config_title)
-
-        parsed_data_dict[urllib.parse.unquote(urllib.parse.unquote_plus(config_title))] = config.vless_link
-    
     return parsed_data_dict
 
 def refresh_configs():
