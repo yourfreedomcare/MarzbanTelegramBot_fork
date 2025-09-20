@@ -48,31 +48,39 @@ class UserRepository():
         return users
 
     @staticmethod
-    def get_user(telegram_user_id): 
+    def get_user(telegram_user_id):
+        print("start get_user user repo") 
         with Session() as session: 
             with session.begin(): 
                 try: 
                     logger.info(f'get_user {telegram_user_id} -> grabbing user\'s data')
+                    print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                     user = session.query(User).filter_by(telegram_user_id=telegram_user_id).first()
+                    print("in get user", user)
                     configurations = None if user == None else user.configurations
                     session.close()
                 except Exception:
                     logger.error(f"Exception -> get_user: ", exc_info=True)
                     session.rollback()
-
+        print("returning from get user data++++++++++++++++++")
         return [user, configurations]
     
     @staticmethod
-    def get_user_configurations(telegram_user_id): 
+    def get_user_configurations(telegram_user_id):
+        print("get_user_configurations")
         with Session() as session: 
             with session.begin(): 
                 try: 
+                    configurations = session.query(Configurations).filter_by(telegram_user_id=telegram_user_id).all()
+                    print("configurations", configurations)
                     logger.info('get_user_configurations -> grabbing users configs')
                     configurations = session.query(Configurations).filter_by(telegram_user_id=telegram_user_id).all()
+                    print("configurations", configurations)
                     session.close()
                 except Exception:
                     logger.error(f"Exception -> get_user_configurations: ", exc_info=True)
                     session.rollback()
+        print("returning from get user Config ++++++++++++++++++")
         return configurations
 
 

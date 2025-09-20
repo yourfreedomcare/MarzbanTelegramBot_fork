@@ -19,7 +19,8 @@ class MarzbanApiFacade():
                 'password': os.getenv("MARZBAN_ADMIN_PASSWORD"),
                 'grant_type': 'password'
             }
-            response = requests.post(url, data=data)
+            print("URL", url)
+            response = requests.post(url, data=data, verify=False)
             return response.json()['access_token']
         except Exception: 
             logger.error(f'Exception -> get_access_token -> ', exc_info=True)
@@ -27,18 +28,21 @@ class MarzbanApiFacade():
     @staticmethod
     def get_user(telegram_user_id , access_token):
         try:
+            print("telegram_user_id", telegram_user_id)
             url = f'{os.getenv("MARZBAN_API_HOST")}/api/user/{telegram_user_id}'
             headers = {
                 'Authorization': f'Bearer {access_token}'
             }
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, verify=False)
             return [response.json(), response.status_code]
         except Exception: 
             logger.error(f'Exception -> get_user -> ', exc_info=True)
 
     
     @staticmethod
-    def create_user(telegram_user_id, access_token): 
+    def create_user(telegram_user_id, access_token):
+        print("In create User")
+        print("telegram_user_id", telegram_user_id) 
         try:
             url = f'{os.getenv("MARZBAN_API_HOST")}/api/user'
             data = {
@@ -63,7 +67,7 @@ class MarzbanApiFacade():
                 'Authorization': f'Bearer {access_token}'
             }
 
-            response = requests.post(url, headers=headers, json=data)
+            response = requests.post(url, headers=headers, json=data, verify=False)
             return [response.json(), response.status_code]
         except Exception: 
             logger.error(f'Exception -> get_user -> ', exc_info=True)
