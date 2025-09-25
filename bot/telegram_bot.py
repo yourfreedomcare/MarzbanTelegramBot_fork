@@ -422,7 +422,7 @@ class TelegramBot():
                     continue
             TelegramBot.admin_user_broadcasts.discard(telegram_user_id)
         else:
-            TelegramBot.bot.send_message(message.chat.id, messages_content['default_fallback'].format(support=os.getenv("SUPPORT_TG"))
+            TelegramBot.bot.send_message(message.chat.id, messages_content['default_fallback'].format(support=os.getenv("SUPPORT_TG")))
 
     def start_bot(self):
         while True:
