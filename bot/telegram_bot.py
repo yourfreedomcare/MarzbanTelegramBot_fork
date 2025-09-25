@@ -211,7 +211,7 @@ class TelegramBot():
     def get_manuals(message):
         logger.info("Executing get_manuals")
         try:
-            manuals = messages_content['manuals'].format(link=os.getenv("MANUALS_LINK"), support=os.getenv("SUPPORT_TG"))
+            manuals = messages_content['manuals'].format(link=os.getenv("MANUALS_LINK"), support=os.getenv("SUPPORT_TG"), channel=os.getenv("TG_CHANNEL"))
             TelegramBot.bot.send_message(message.chat.id, manuals, parse_mode='HTML')
         except Exception: 
             logger.error(f"Exception -> get_manuals: ", exc_info=True)
@@ -422,7 +422,7 @@ class TelegramBot():
                     continue
             TelegramBot.admin_user_broadcasts.discard(telegram_user_id)
         else:
-            TelegramBot.bot.send_message(message.chat.id, messages_content['default_fallback'])
+            TelegramBot.bot.send_message(message.chat.id, messages_content['default_fallback'].format(support=os.getenv("SUPPORT_TG"))
 
     def start_bot(self):
         while True:
