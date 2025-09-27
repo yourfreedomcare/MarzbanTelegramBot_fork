@@ -23,11 +23,16 @@ CRYPTO_ADDRESSES = {
 def get_crypto_address_info(coin_key):
     return CRYPTO_ADDRESSES.get(coin_key)
 
-with open('message_content.json', 'r') as file:
+CONTENT_DIR = 'content'
+
+with open(os.path.join(CONTENT_DIR, 'message_content.json'), 'r') as file:
     messages_content = json.load(file)
 
-with open('button_content.json', 'r') as file:
+with open(os.path.join(CONTENT_DIR, 'button_content.json'), 'r') as file:
     button_content = json.load(file)
+
+with open(os.path.join(CONTENT_DIR, 'donations_content.json'), 'r') as file:
+    donations_content = json.load(file)
 
 def show_create_configurations_message(bot, message, content):
     keyboard = types.InlineKeyboardMarkup()
