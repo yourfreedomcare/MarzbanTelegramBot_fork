@@ -14,7 +14,7 @@ import time
 # --- Constants for Stars Amounts ---
 # These are the amounts in Stars (XTR currency)
 STAR_AMOUNTS = {
-    "select_stars_amount_1": 1,
+    "select_stars_amount_10": 10,
     "select_stars_amount_100": 100,
     "select_stars_amount_500": 500,
     "select_stars_amount_1000": 1000,
@@ -289,7 +289,7 @@ class TelegramBot():
             keyboard = types.InlineKeyboardMarkup()
             # Create buttons for each star amount
             for key, amount in STAR_AMOUNTS.items():
-                keyboard.add(types.InlineKeyboardButton(f"{amount} Stars", callback_data=key))
+                keyboard.add(types.InlineKeyboardButton(f"{amount} ⭐", callback_data=key))
 
             TelegramBot.bot.edit_message_text(
                 chat_id=call.message.chat.id,
