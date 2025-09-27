@@ -327,7 +327,7 @@ class TelegramBot():
             TelegramBot.bot.send_invoice(
                 chat_id=call.message.chat.id,
                 title=f"Donate {amount} Stars",
-                description=f"Thank you for your generous donation of {amount} Telegram Stars!",
+                description=f"Большое спасибо за пожертвование {amount} звёзд!",
                 invoice_payload=invoice_payload,
                 provider_token="",
                 currency="XTR",
@@ -338,7 +338,7 @@ class TelegramBot():
             )
             TelegramBot.bot.send_message(
                 call.message.chat.id,
-                text=f"Initiated donation for {amount} Stars. Please confirm the payment above."
+                text=f"Вы собираетесь пожертвовать {amount} ⭐ звёзд. Подтвердите свое решение ниже."
             )
 
         except Exception as e:
