@@ -230,11 +230,11 @@ class TelegramBot():
             d = prepare_links_dictionary_rework(configurations)
             if d[call.data]:
 
-                status, used_traffic, data_limit = fetch_marzban_user_data(telegram_user_id)
-                data_left_gb = max(0, bytes_to_gb(data_limit - used_traffic))
-                status_message = f"Status: {status.upper()} | Data Left: {data_left_gb} GB"
+                #status, used_traffic, data_limit = fetch_marzban_user_data(telegram_user_id)
+                #data_left_gb = max(0, bytes_to_gb(data_limit - used_traffic))
+                #status_message = f"Status: {status.upper()} | Data Left: {data_left_gb} GB"
 
-                TelegramBot.bot.send_message(call.message.chat.id, status_message)
+                #TelegramBot.bot.send_message(call.message.chat.id, status_message)
                 TelegramBot.bot.send_message(call.message.chat.id, messages_content['link_available_1'].format(link=os.getenv("MANUALS_LINK")), parse_mode='HTML')
                 TelegramBot.bot.send_message(call.message.chat.id, messages_content['link_available_2'].format(breakpoint="\n\n", link=d[call.data]), parse_mode='Markdown')
             else: 
