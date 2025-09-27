@@ -326,8 +326,8 @@ class TelegramBot():
 
             TelegramBot.bot.send_invoice(
                 chat_id=call.message.chat.id,
-                title = message_content['stars_invoice_title'],
-                description = message_content['stars_invoice_description_thank_you'],
+                title = donations_content['stars_invoice_title'],
+                description = donations_content'stars_invoice_description_thank_you'],
                 invoice_payload=invoice_payload,
                 provider_token="",
                 currency="XTR",
