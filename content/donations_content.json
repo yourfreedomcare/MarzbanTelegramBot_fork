@@ -1,0 +1,17 @@
+{
+  "unexpected_error": "An unexpected error occurred. Please try again later.",
+  "address_not_configured_error": "Address not configured. Please contact support.",
+  "invalid_amount_selected_error": "Invalid amount selected. Please try again.",
+  "invalid_amount_options_error": "Invalid amount. Please choose from the given options.",
+  "choose_donation_option_prompt": "Choose donation option:",
+  "choose_crypto_network_coin_prompt": "Choose network and coin:",
+  "select_stars_amount_prompt": "Сколько звёзд вы готовы пожертвовать?:",
+  "crypto_address_template": "*{network} Address:*\n`{address}`\n\n",
+  "stars_invoice_label_donation": "Donation of {amount} Stars",
+  "stars_invoice_title_project": "Пожертвовать проекту {project_name}",
+  "stars_invoice_description_thank_you": "Большое спасибо за пожертвование!",
+  "stars_invoice_start_parameter": "stars_donation",
+  "stars_payment_successful_message": "🎉 Thank you, for your generous donation of {amount_paid_stars} Stars! Your support is greatly appreciated!",
+  "precheckout_generic_error": "Something went wrong with your donation. Please try again.",
+  "precheckout_internal_error": "An internal error occurred while processing your payment. Please try again later."
+}

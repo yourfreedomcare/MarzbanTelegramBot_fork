@@ -292,10 +292,10 @@ class TelegramBot():
                 keyboard.add(types.InlineKeyboardButton(f"{amount} ⭐", callback_data=key))
 
             TelegramBot.bot.edit_message_text(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                text="Please select the amount of Stars you'd like to donate:",
-                reply_markup=keyboard
+                chat_id = call.message.chat.id,
+                message_id = call.message.message_id,
+                text = donations_content['select_stars_amount_prompt'],
+                reply_markup = keyboard
             )
         except Exception as e:
             logger.error(f"Exception in handle_donate_tgstars_initial: {e}", exc_info=True)
@@ -326,8 +326,8 @@ class TelegramBot():
 
             TelegramBot.bot.send_invoice(
                 chat_id=call.message.chat.id,
-                title=f"Donate {amount} Stars",
-                description=f"Вы собираетесь пожертвовать {amount} ⭐ звёзд. Подтвердите свое решение ниже.",
+                title=f"Пожертвовать проекту yourfreedom",
+                description=f"Большое спасибо за пожертвование!",
                 invoice_payload=invoice_payload,
                 provider_token="",
                 currency="XTR",
