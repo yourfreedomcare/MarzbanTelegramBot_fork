@@ -326,8 +326,8 @@ class TelegramBot():
 
             TelegramBot.bot.send_invoice(
                 chat_id=call.message.chat.id,
-                title=f"Пожертвовать проекту yourfreedom",
-                description=f"Большое спасибо за пожертвование!",
+                title = message_content['stars_invoice_title'],
+                description = message_content['stars_invoice_description_thank_you'],
                 invoice_payload=invoice_payload,
                 provider_token="",
                 currency="XTR",
@@ -390,11 +390,8 @@ class TelegramBot():
             logger.info(f"Invoice Payload: {invoice_payload}")
             logger.info(f"Telegram Charge ID: {telegram_payment_charge_id}")
 
-            TelegramBot.bot.send_message(
-                message.chat.id,
-                f"🎉 Thank you, for your generous donation of {amount_paid_stars} Stars! "
-                "Your support is greatly appreciated!"
-            )
+            TelegramBot.bot.send_message(message.chat.id, message_content['stars_payment_successful_message'])
+
         except Exception as e:
             logger.error(f"Exception in successful_payment_callback: {e}", exc_info=True)
             TelegramBot.bot.send_message(message.chat.id, messages_content['unexpected_error'])
