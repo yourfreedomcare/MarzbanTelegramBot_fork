@@ -247,10 +247,10 @@ class TelegramBot():
     @bot.message_handler(func=lambda message: message.text == button_content['Donate'])
     def handle_donate(message):
         keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton("💰 Crypto", callback_data='donate_crypto'))
+        keyboard.add(types.InlineKeyboardButton(button_content['Crypto'], callback_data='donate_crypto'))
         # Using the defined constant for clarity
-        keyboard.add(types.InlineKeyboardButton("⭐ TG Stars", callback_data=CALLBACK_DONATE_STARS_INITIAL))
-        TelegramBot.bot.send_message(message.chat.id, "Choose donation option:", reply_markup=keyboard)
+        keyboard.add(types.InlineKeyboardButton(button_content['TG_Stars'], callback_data=CALLBACK_DONATE_STARS_INITIAL))
+        TelegramBot.bot.send_message(message.chat.id, donations_content['choose_donation_option_prompt'], reply_markup=keyboard)
 
     @bot.callback_query_handler(func=lambda call: call.data == 'donate_crypto')
     def handle_donate_crypto(call):
@@ -259,7 +259,7 @@ class TelegramBot():
         keyboard.add(types.InlineKeyboardButton("Litecoin", callback_data='donate_coin_ltc'))
         keyboard.add(types.InlineKeyboardButton("USDT (ERC-20)", callback_data='donate_coin_usdt_erc'))
         keyboard.add(types.InlineKeyboardButton("USDT (TRC-20)", callback_data='donate_coin_usdt_trc'))
-        TelegramBot.bot.send_message(call.message.chat.id, "Choose network and coin:", reply_markup=keyboard)
+        TelegramBot.bot.send_message(call.message.chat.id, donations_content['choose_crypto_network_coin_prompt'], reply_markup=keyboard)
 
     # Unified crypto handler
     @bot.callback_query_handler(func=lambda call: call.data.startswith("donate_coin_"))
