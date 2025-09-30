@@ -8,5 +8,9 @@
     "Broadcast": "📣 Broadcast",
     "Donate": "🍩 Донаты",
     "Crypto": "💲 Крипта",
-    "TG_Stars": "⭐ Звёзды"
+    "TG_Stars": "⭐ Звёзды",
+    "crypto_bitcoin_button": "Bitcoin",
+    "crypto_litecoin_button": "Litecoin",
+    "crypto_usdt_erc20_button": "USDT (ERC-20)",
+    "crypto_usdt_trc20_button": "USDT (TRC-20)"
 }
