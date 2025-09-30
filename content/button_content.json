@@ -9,6 +9,7 @@
     "Donate": "🍩 Донаты",
     "Crypto": "💲 Крипта",
     "TG_Stars": "⭐ Звёзды",
+    "stars_amount_button_template": "{amount} ⭐",
     "crypto_bitcoin_button": "Bitcoin",
     "crypto_litecoin_button": "Litecoin",
     "crypto_usdt_erc20_button": "USDT (ERC-20)",
