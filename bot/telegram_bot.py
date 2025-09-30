@@ -289,7 +289,7 @@ class TelegramBot():
             keyboard = types.InlineKeyboardMarkup()
             # Create buttons for each star amount
             for key, amount in STAR_AMOUNTS.items():
-                keyboard.add(types.InlineKeyboardButton(f"{amount} ⭐", callback_data=key))
+                keyboard.add(types.InlineKeyboardButton(button_content['stars_amount_button_template'].format(amount=amount), callback_data=key))
 
             TelegramBot.bot.edit_message_text(
                 chat_id = call.message.chat.id,
