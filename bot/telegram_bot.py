@@ -390,7 +390,7 @@ class TelegramBot():
             logger.info(f"Invoice Payload: {invoice_payload}")
             logger.info(f"Telegram Charge ID: {telegram_payment_charge_id}")
 
-            TelegramBot.bot.send_message(message.chat.id, message_content['stars_payment_successful_message'])
+            TelegramBot.bot.send_message(message.chat.id, donations_content['stars_payment_successful_message'])
 
         except Exception as e:
             logger.error(f"Exception in successful_payment_callback: {e}", exc_info=True)
