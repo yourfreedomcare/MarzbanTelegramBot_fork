@@ -54,7 +54,8 @@ class MarzbanApiFacade():
                     },
                     "inbounds": {
                         "vless": [
-                            "VLESS TCP REALITY"
+                            "VLESS TCP REALITY",
+                            "VLESS XHTTP NoTLS"
                         ]
                     },
                     "expire": 0,
